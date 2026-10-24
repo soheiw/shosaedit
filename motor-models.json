@@ -1,0 +1,21 @@
+{
+  "numbering": "肩からの関節番号。実機のモーターIDとは未照合。",
+  "confirmed": {
+    "1": "XM540-W150-R",
+    "2": "XM540-W150-R",
+    "3": "XM430-W350-R",
+    "4": "XM540-W150-R",
+    "6": "XC330-T288-T",
+    "7": "XC330-T288-T"
+  },
+  "unconfirmed": [
+    "5番目の関節",
+    "指・紐駆動用（XC330と同じ外形寸法）"
+  ],
+  "confirmationSources": {
+    "4": {
+      "source": "user",
+      "url": "https://e-shop.robotis.co.jp/product.php?id=42"
+    }
+  }
+}

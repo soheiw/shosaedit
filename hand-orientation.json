@@ -1,0 +1,23 @@
+{
+  "referenceFrame": "link_7 native CAD geometry",
+  "palmNormalLocal": [
+    0,
+    0,
+    1
+  ],
+  "backNormalLocal": [
+    0,
+    0,
+    -1
+  ],
+  "upWorld": [
+    0,
+    -1,
+    0
+  ],
+  "source": "User corrected and confirmed which CAD surface is the palm.",
+  "palmLandmark": "The face exposing the two small finger motors, confirmed by the user.",
+  "cadCheck": "Native +Z exposes both finger motor cases after diagnostic removal of outer covers (source bodies 174 and 175). In the complete CAD, these covers obscure the motors from both sides; the landmark requires hiding covers. Rechecked using all group 6/7 solid meshes and browser diagnostic view.",
+  "positionFormat": "Signed integer encoder positions; Arm_Utils.py configures extended-position mode (4), so values are not restricted to 0..4095.",
+  "visibilityNote": "The landmark identifies the palm-facing side of the internal assembly; the motors are covered in normal rendered view."
+}

@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "manufacturer": "ROBOTIS",
+  "checkedOn": "2026-10-25",
+  "models": [
+    {
+      "id": "XM540-W150-R",
+      "massKg": 0.165,
+      "dimensionsMm": [
+        33.5,
+        58.5,
+        44
+      ],
+      "dimensionOrder": "width-height-depth",
+      "source": "https://emanual.robotis.com/docs/en/dxl/x/xm540-w150/",
+      "title": "ROBOTIS e-Manual: XM540-W150-T/R",
+      "points": [
+        {
+          "voltage": 11.1,
+          "stallTorqueNm": 6.9,
+          "noLoadRpm": 50,
+          "stallCurrentA": 4.2
+        },
+        {
+          "voltage": 12,
+          "stallTorqueNm": 7.3,
+          "noLoadRpm": 53,
+          "stallCurrentA": 4.4
+        },
+        {
+          "voltage": 14.8,
+          "stallTorqueNm": 8.9,
+          "noLoadRpm": 66,
+          "stallCurrentA": 5.5
+        }
+      ],
+      "inputVoltageRange": [
+        10,
+        14.8
+      ],
+      "recommendedVoltage": 12,
+      "gearRatio": 152.3,
+      "continuousTorqueNm": null,
+      "continuousTorqueStatus": "not specified as a numeric continuous rating in the cited specification table",
+      "torqueReference": "output shaft",
+      "massIncludes": "manufacturer-listed complete actuator weight; not a link mass or separated rotor/case mass"
+    },
+    {
+      "id": "XM430-W350-R",
+      "massKg": 0.082,
+      "dimensionsMm": [
+        28.5,
+        46.5,
+        34
+      ],
+      "dimensionOrder": "width-height-depth",
+      "source": "https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/",
+      "title": "ROBOTIS e-Manual: XM430-W350-T/R",
+      "points": [
+        {
+          "voltage": 11.1,
+          "stallTorqueNm": 3.8,
+          "noLoadRpm": 43,
+          "stallCurrentA": 2.1
+        },
+        {
+          "voltage": 12,
+          "stallTorqueNm": 4.1,
+          "noLoadRpm": 46,
+          "stallCurrentA": 2.3
+        },
+        {
+          "voltage": 14.8,
+          "stallTorqueNm": 4.8,
+          "noLoadRpm": 57,
+          "stallCurrentA": 2.7
+        }
+      ],
+      "inputVoltageRange": [
+        10,
+        14.8
+      ],
+      "recommendedVoltage": 12,
+      "gearRatio": 353.5,
+      "continuousTorqueNm": null,
+      "continuousTorqueStatus": "not specified as a numeric continuous rating in the cited specification table",
+      "torqueReference": "output shaft",
+      "massIncludes": "manufacturer-listed complete actuator weight; not a link mass or separated rotor/case mass"
+    },
+    {
+      "id": "XC330-T288-T",
+      "massKg": 0.023,
+      "dimensionsMm": [
+        20,
+        34,
+        26
+      ],
+      "dimensionOrder": "width-height-depth",
+      "source": "https://emanual.robotis.com/docs/en/dxl/x/xc330-t288/",
+      "title": "ROBOTIS e-Manual: XC330-T288-T",
+      "points": [
+        {
+          "voltage": 9,
+          "stallTorqueNm": 0.76,
+          "noLoadRpm": 52,
+          "stallCurrentA": 0.61
+        },
+        {
+          "voltage": 11.1,
+          "stallTorqueNm": 0.92,
+          "noLoadRpm": 65,
+          "stallCurrentA": 0.8
+        },
+        {
+          "voltage": 12,
+          "stallTorqueNm": 1,
+          "noLoadRpm": 71,
+          "stallCurrentA": 0.88
+        }
+      ],
+      "inputVoltageRange": [
+        6.5,
+        12
+      ],
+      "recommendedVoltage": 11.1,
+      "gearRatio": 288.35,
+      "continuousTorqueNm": null,
+      "continuousTorqueStatus": "not specified as a numeric continuous rating in the cited specification table",
+      "torqueReference": "output shaft",
+      "massIncludes": "manufacturer-listed complete actuator weight; not a link mass or separated rotor/case mass"
+    }
+  ],
+  "notes": {
+    "ja": [
+      "重量はモーター全体のメーカー公称値。ケースと出力側へ分けた質量や、リンク全体の重量とは異なります。",
+      "ストールトルクは瞬間的な最大値で、連続運転の許容トルクではありません。",
+      "無負荷速度とストールトルクは異なる運転点です。同時に達成できる値ではありません。",
+      "連続定格トルクは引用した仕様表に数値の記載がないため未設定です。",
+      "電圧ごとの記載値を保持し、未記載電圧への外挿や安全率の自動設定は行いません。"
+    ],
+    "en": [
+      "Mass is the published complete actuator weight, not a separated case/rotor mass or an entire link mass.",
+      "Stall torque is momentary maximum torque, not a continuous operating limit.",
+      "No-load speed and stall torque are separate operating points and cannot be achieved simultaneously.",
+      "Continuous torque is unspecified because the cited specification table provides no numeric continuous rating.",
+      "Published voltage points are retained without extrapolation or an invented safety factor."
+    ]
+  }
+}

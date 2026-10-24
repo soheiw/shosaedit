@@ -1,0 +1,70 @@
+[
+  {
+    "id": "bird-flap",
+    "file": "bird-flap.motion.json"
+  },
+  {
+    "id": "hand-waves",
+    "file": "hand-waves.motion.json"
+  },
+  {
+    "id": "alternating-waves",
+    "file": "alternating-waves.motion.json"
+  },
+  {
+    "id": "dab-pose",
+    "file": "dab-pose.motion.json"
+  },
+  {
+    "id": "bird-flap-back-up",
+    "file": "bird-flap-back-up.motion.json"
+  },
+  {
+    "id": "hand-waves-back-up",
+    "file": "hand-waves-back-up.motion.json"
+  },
+  {
+    "id": "alternating-waves-back-up",
+    "file": "alternating-waves-back-up.motion.json"
+  },
+  {
+    "id": "dab-pose-back-up",
+    "file": "dab-pose-back-up.motion.json"
+  },
+  {
+    "id": "banzai",
+    "file": "banzai.motion.json"
+  },
+  {
+    "id": "banzai-natural",
+    "file": "banzai-natural.motion.json"
+  },
+  {
+    "id": "surrender",
+    "file": "surrender.motion.json"
+  },
+  {
+    "id": "present",
+    "file": "present.motion.json"
+  },
+  {
+    "id": "shrug",
+    "file": "shrug.motion.json"
+  },
+  {
+    "id": "victory",
+    "file": "victory.motion.json"
+  },
+  {
+    "id": "guard",
+    "file": "guard.motion.json"
+  },
+  {
+    "id": "bow-draw",
+    "file": "bow-draw.motion.json"
+  },
+  {
+    "id": "hug",
+    "file": "hug.motion.json"
+  }
+]
