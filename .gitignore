@@ -5,3 +5,8 @@ __pycache__/
 .env.*
 node_modules/
 tests/*-report.json
+
+# Local robot descriptions are excluded from source control.
+*.[uU][rR][dD][fF]
+*.[uU][rR][dD][fF].*
+*.[xX][aA][cC][rR][oO]
