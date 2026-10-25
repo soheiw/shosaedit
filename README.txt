@@ -1,6 +1,7 @@
 ShosaEdit — ロボットアームの動作編集・比較ツール
 
 詳しい使い方と画面例は README.md を参照してください。
+English documentation: README.en.md
 GitHub: https://github.com/soheiw/shosaedit#readme
 
 起動方法

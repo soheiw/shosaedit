@@ -1,0 +1,179 @@
+# ShosaEdit
+
+[日本語](README.md) | English
+
+ShosaEdit is a local web app for replaying recorded robot-arm motions in 3D and editing each arm's speed, delay, and smoothing while comparing the result with the original. You can save edited motions under new names or export them in the original CSV format.
+
+The repository includes Augmented Arms CAD geometry imported from Fusion, along with motion data. The interface supports Japanese and English. The screenshots below show the Japanese interface; use the language selector to switch to English.
+
+![Original and edited motions compared at the same elapsed time](docs/images/overview.jpg)
+
+The left pane shows **the original motion of both arms**; the right pane shows **the edited motion of both arms**. Right-arm and left-arm speed settings refer to the robot's arms, not the two comparison panes.
+
+## Getting started
+
+You need **Python 3** and a **WebGL-capable browser**. Normal use does not require Node.js or package installation.
+
+```sh
+git clone https://github.com/soheiw/shosaedit.git
+cd shosaedit
+python3 launch.py
+```
+
+The launcher opens your browser automatically. On macOS, you can also double-click **起動.command** in the project folder.
+
+- The usual URL is `http://127.0.0.1:8765/`.
+- If another app occupies the port, the launcher uses an available port. Open the URL printed in the terminal.
+- Press `Ctrl+C` in the terminal to stop the server.
+- Use the local server rather than opening the HTML file directly.
+
+To start without opening a browser and specify a preferred port:
+
+```sh
+python3 launch.py --no-browser --port 8765
+```
+
+The model, rendering libraries, and motion data are bundled. Playback and editing run locally. The app does not connect to physical actuators.
+
+## Basic workflow
+
+1. Choose **Motion 1–3** or an entry under **Generated and imported motions**. The library also includes 17 generated motions, such as banzai, waves, bird flapping, and a hug.
+2. Play the motion or seek with the playback slider. The original in the left pane plays at 1×; the edited motion in the right pane uses your settings.
+3. Adjust each arm's speed, Bézier curve, delay, and smoothing.
+4. Use **Save as new motion** to add the result to the list, or export the right/left CSVs.
+
+The 3D view stays visible while scrolling. Playback does not automatically move the camera.
+
+| Control | Action |
+| --- | --- |
+| Drag | Orbit the camera |
+| Scroll | Zoom |
+| Right-drag | Pan |
+| Fit all | Fit the current pose in the view |
+| Focus hand | Zoom in on the hand area |
+| Front | View from the front of the body |
+| Space | Play/pause when a form field is not focused |
+| ← / → | Step backward/forward by one frame of elapsed time |
+
+If a pose extends outside the view, press **Fit all** at that pose.
+
+## Independent arm speeds and delay
+
+![Independent arm rates, LINK, Bézier speed curve, and delay controls](docs/images/timing.jpg)
+
+By default, the right and left arms have separate settings.
+
+- **Playback rate:** Set each arm to 0.25–3×.
+- **Bézier speed curve:** Choose the target with **Edit arm**, then drag points and handles. You can also edit the selected point numerically. The horizontal axis is source time; the vertical axis is the speed multiplier. A flat 1× curve means constant speed.
+- **LINK:** Enable shared playback-rate and curve settings. Turning LINK off restores the individual arm settings.
+- **Arm delay:** Choose which arm to delay and enter 0–5 seconds. The delay is measured in actual output seconds, after applying the speed curve.
+
+The effective speed is the arm's playback rate multiplied by the curve value. **Reset to constant speed** resets the selected curve to a flat 1× without changing the arm's playback rate. Delay remains independent of LINK.
+
+An arm waiting to start holds its first pose; an arm that has finished holds its last pose. Looping restarts after both the original and edited playback have finished.
+
+The playback slider and load graph use **actual elapsed time**. The motor-position graph uses **source time**. Speed and delay settings are automatically saved in the browser for each motion.
+
+## Smoothing
+
+| Method | Adjustment |
+| --- | --- |
+| Adaptive (preserve sharp motion) | Uses sustained motion, reversals, and coordinated joint changes as cues to reduce smoothing where motion should be preserved. Adjust it with **Strength**. |
+| Gaussian time averaging | Averages neighboring samples using Gaussian weights. Adjust **Time window (full width)** in seconds. |
+
+Use **Protect a time interval** to preserve a section of motion. Smoothing windows and protected intervals refer to source time. Adaptive detection is an estimate and cannot guarantee preservation of the intended gesture; check the comparison view.
+
+## Save an edited motion under a new name
+
+![Named motion saving and right/left CSV export](docs/images/save-motion.jpg)
+
+Under **Save or export edited motion**, enter a name and press **Save as new motion**.
+
+- A new 30 fps motion is created with both arms' rates, speed curves, delay, and smoothing applied.
+- It is added to the dropdown and selected. The original remains available. Duplicate names receive a numeric suffix.
+- The motion is stored in the browser's IndexedDB and remains available after reloading.
+- A **Motion JSON** file is downloaded at the same time.
+
+Edits are baked into the saved samples. On first selection, the saved motion opens at **1× speed, no delay, and smoothing off**, so the edits are not applied twice. This saves the resulting motion, not the editing history or original Bézier control points. You can edit the saved motion further.
+
+**The browser's motion list and the downloaded file are separate.** Clearing site data removes the saved list. A different browser or URL port uses a different storage area. Keep the JSON file for backup or transfer, and reload it with **Open motion file**.
+
+## Import files and export CSVs
+
+**Open motion file** accepts either of the following:
+
+| Format | Contents |
+| --- | --- |
+| Motion JSON | One ShosaEdit motion file containing both arms, with `format: augmented-arms-motion`, `version: 1`, and `fps: 30`. |
+| CSV pair | Select matching `MotionNameR.csv` and `MotionNameL.csv` files together. No header, integer values, 9 columns for the right arm and 8 for the left. |
+
+Imports support files up to 6 MB each and 2–10,000 frames per arm. To keep an imported motion in the browser's list across reloads, save it under a new name.
+
+CSV exports use **30 fps, no header, integer motor counts, 9 right-arm columns, and 8 left-arm columns**. Save either arm separately or download the pair as a ZIP. Both CSVs have the same number of rows, extending until both edited arms finish. Waiting periods contain the first or last sample as appropriate. Finger columns are included. Display-only CAD pose and input isolation do not affect exports. Original files are unchanged.
+
+## Per-motor loads and limits
+
+![A single exceeded axis flags the entire motion in the per-motor table](docs/images/motor-loads.jpg)
+
+The 0.50 N·m value in this screenshot is a display-test example, not a recommended operating limit. Limits are unset by default.
+
+**Per-motor limit comparison** lists **all 14 modeled shoulder-to-wrist axes across both arms**. R1–R7 and L1–L7 number joints from the shoulder; they have not been matched to hardware motor IDs. Finger drives are excluded.
+
+- Each axis shows the edited **current torque**, **peak torque (original → edited)**, and **RMS torque**.
+- Enter an **allowable operating torque in N·m** for each arm axis to see the edited peak-to-limit ratio and time above the limit.
+- **If any single axis exceeds its limit, the whole motion is flagged.** Low loads on other axes do not cancel the exceedance.
+- **Go to highest ratio** selects the motor with the highest peak-to-limit ratio and seeks to that time. Each motor's button also selects its individual graph.
+- If no axis exceeds a limit but some limits are missing, the result is **Incomplete**. A within-limits result is shown only when all 14 limits are set and none is exceeded.
+
+Limits are saved in the browser and shared across motions. Clear an input to unset its limit. Stall torque is not automatically used as a continuous operating limit. Comparisons use the absolute torque including gravity and motion; time above a limit is calculated by linear interpolation between analysis samples.
+
+This is a comparison of estimated torque for motion review. It does not reproduce hardware current, temperature, or protective shutdown logic, and it does not automatically stop hardware or preview playback.
+
+## Estimated load comparison
+
+Joint torque from gravity and motion is estimated using CAD geometry, manufacturer motor masses, and assumed component masses. The individual graph compares the selected motor's peak torque, RMS torque, and time integral of torque squared over the **same comparison duration** for original and edited motion. Holding the final pose includes gravity load.
+
+- Printed parts provisionally use PLA density of 1.24 g/cm³, 20% infill, and 1.2 mm shell thickness. These are not measured masses.
+- Adjust the assumptions and payload masses under **Mass and center of mass**.
+- Load colors are relative within the comparison, not percentages of motor ratings.
+- The time integral of torque squared is a comparison metric, not heat or energy consumption.
+
+Hardware joint limits, calibration, cables, and whole-arm collisions during motion remain unverified. Estimated loads and visual consistency do not constitute hardware safety validation.
+
+## Model and joint assumptions
+
+- The viewer displays 250 bodies imported from Fusion's `RightHand260507_urdf`, assigned to `link_0`–`link_7`. Fingers and tendon-related parts are fixed to `link_7`.
+- The right arm uses the imported CAD geometry; the left arm is a provisional mirror of the right.
+- Input columns 1–7 drive the shoulder-to-wrist joints. Columns 8/9, where present, are retained and exported but do not animate fingers.
+- The side with two small visible motors is the palm. **Hide hand covers** helps inspect this identifying feature.
+- **Joint mapping and reference pose** lets you change input IDs, rotation directions, axes, and reference angles. Physical calibration is still required.
+
+This preview targets the bundled model. It currently does not include direct import of arbitrary Fusion files or URDFs, hardware control, motion-capture input, or in-app AI generation from natural language.
+
+## Development and checks
+
+Rendering and editing use JavaScript and Three.js. Local serving uses Python's standard library. There is no build step.
+
+Checks require Node.js 20 or later. No external packages need to be installed.
+
+```sh
+npm test
+```
+
+Checks cover independent playback clocks, delay, CSV sampling, LINK switching and settings restoration, load calculations, endpoint holds, and 14-axis limit assessment including exceedance duration and highest-ratio selection. Numerical checks are separate from CAD visual inspection and physical validation.
+
+| File | Role |
+| --- | --- |
+| `app.js` / `index.html` / `style.css` | Interface and playback |
+| `speed-curve.js` / `arm-delay.js` / `smoothing.js` | Speed, delay, and smoothing |
+| `saved-motions.js` / `motion-files.js` / `export-motion.js` | Named saves, import, and export |
+| `load-physics.js` / `load-panel.js` / `mass-model.js` / `motor-loads.js` | Load estimation and mass model |
+| `model.json` / `model.bin` | Imported CAD geometry |
+| `motions.json` / `*.motion.json` | Original recordings and generated motions |
+| `tests/` | Numerical and settings checks |
+
+See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlier motion reviews and the [gesture research notes](docs/shosa-research.md) for the design background. These supporting documents are currently in Japanese.
+
+## Licenses and data
+
+The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its CAD and motion data. Check the rights for each asset before publishing or redistributing it.
