@@ -5,7 +5,7 @@ import {exportRows,toCSV,zipFiles,downloadFile} from './export-motion.js';
 import {createArmDelayEditor,createPlaybackClock,sampleAtTime} from './arm-delay.js';
 import {createSmoothing} from './smoothing.js?v=named-1';
 import {createSpeedEditor} from './speed-curve.js?v=arms-2';
-import {createLoadPanel} from './load-panel.js?v=arms-2';
+import {createLoadPanel} from './load-panel.js?v=motors-1';
 import * as THREE from './vendor/three.module.js';
 import {OrbitControls} from './vendor/OrbitControls.js';
 const $=id=>document.getElementById(id);

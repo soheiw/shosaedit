@@ -1,5 +1,32 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+"現在値を表示中（許容値未設定）":"Showing current values; torque limits are not set",
+"モーター別の上限比較":"Per-motor limit comparison",
+"R1〜R7／L1〜L7は肩からの関節番号です。実機IDとは未照合。指駆動は計算対象外です。":"R1–R7 / L1–L7 count joints from the shoulder. Hardware IDs are unverified. Finger drives are excluded.",
+"最大比の時刻へ":"Go to highest ratio",
+"左右14軸の一覧・許容値":"All 14 arm axes and limits",
+"各軸の重力＋動作トルクの絶対値。現在値は修正後、最大値は元 → 修正です。各許容値は運用条件に合わせてN·mで入力してください。ストールトルクを連続許容値として自動設定しません。":"All values are absolute total torque. Current values are edited; peaks are original → edited. Enter operating torque limits in N·m. Stall torque is not used as a continuous limit.",
+"許容値は両腕それぞれに保存し、すべてのMotionで共通です。1軸でも超過すれば全体を「超過あり」と表示します。これは推定トルクの比較で、実機の電流・温度・停止判定を再現したものではありません。":"Limits are saved per arm and apply to all motions. Any exceeded axis flags the whole motion. This compares estimated torque; it does not reproduce hardware current, temperature or shutdown logic.",
+"選択したモーターの詳細":"Selected motor details",
+"合計（重力＋動作）":"Total (gravity + motion)",
+"現在／最大 N·m":"Current / peak N·m",
+"許容 N·m／最大比":"Limit N·m / peak ratio",
+"対象14軸は設定値内（推定）":"All 14 modeled axes within entered limits (estimated)",
+"現在の超過なし（設定済みの軸のみ）":"No current exceedance among configured axes",
+"現在の超過：":"Currently over: ",
+"許容値未設定":"Missing limits",
+"未判定：":"Incomplete: ",
+"超過あり：":"Exceeds limit: ",
+"最大比":"Peak ratio",
+"許容トルク":"Allowable torque",
+"0より大きい許容トルクを入力してください":"Enter a torque limit greater than zero",
+"未設定":"Not set",
+"設定値内":"Within limit",
+"実効":"RMS",
+"超過":"Over",
+"許容":"Limit",
+"モーター":"Motor",
+
 "修正後を保存・書き出す":"Save or export edited motion",
 "動きの名前":"Motion name",
 "保存する動きの名前":"Name of saved motion",
@@ -145,7 +172,7 @@ const words={
 const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const pattern=new RegExp(Object.keys(words).sort((a,b)=>b.length-a.length).map(escape).join('|'),'g');
 export function english(text){
- return text.replace(/^(右腕|左腕)を([\d.]+)秒遅らせる$/g,(_,arm,n)=>`${arm==='右腕'?'Right':'Left'} arm delayed by ${n} s`).replace(/第(\d+)列のみ（右ID (\d+) \/ 左ID (\d+)）/g,'Column $1 only (R ID $2 / L ID $3)')
+ return text.replace(/（14軸中(\d+)軸）/g,'($1 of 14 axes)').replace(/未設定 (\d+)軸/g,'$1 axes without limits').replace(/超過([\d.]+)秒/g,'over limit for $1 s').replace(/^(右腕|左腕)を([\d.]+)秒遅らせる$/g,(_,arm,n)=>`${arm==='右腕'?'Right':'Left'} arm delayed by ${n} s`).replace(/第(\d+)列のみ（右ID (\d+) \/ 左ID (\d+)）/g,'Column $1 only (R ID $2 / L ID $3)')
  .replace(/再生時間 約([\d.]+)秒/g,'Playback duration ≈ $1 s')
  .replace(/前後各([\d.]+)秒 · 30fpsで前後各(\d+)コマ（端は利用できる範囲）/g,'±$1 s · $2 frames each side at 30 fps (truncated at endpoints)')
  .replace(/^リンク(\d+) 質量 kg$/g,'Link $1 mass kg')

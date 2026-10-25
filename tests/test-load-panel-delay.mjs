@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createLoadPanel} from '../load-panel.js';
 const near=(a,b,t=1e-8)=>assert.ok(Math.abs(a-b)<t,`${a} != ${b}`);
-class Node {constructor(){this.listeners={};this.attrs={};this.classList={add(){},remove(){}};this.checked=false;}querySelector(s){return this.nodes??=new Map(),this.nodes.has(s)||this.nodes.set(s,new Node()),this.nodes.get(s);}querySelectorAll(){return [];}addEventListener(k,f){this.listeners[k]=f;}setAttribute(k,v){this.attrs[k]=v;}getBoundingClientRect(){return {left:0,width:440};}}
+class Node {constructor(){this.dataset={};this.listeners={};this.attrs={};this.classList={add(){},remove(){}};this.checked=false;}querySelector(s){return this.nodes??=new Map(),this.nodes.has(s)||this.nodes.set(s,new Node()),this.nodes.get(s);}querySelectorAll(){return [];}addEventListener(k,f){this.listeners[k]=f;}setAttribute(k,v){this.attrs[k]=v;}getBoundingClientRect(){return {left:0,width:440};}}
 globalThis.localStorage={getItem:()=>null,setItem(){}};
 const host=new Node(),I=[[0,0,0],[0,0,0],[0,0,.001]],links=Array.from({length:7},()=>({defaultMass:.1,com:[.1,0,0],unitMassInertia:I})),joints=Array.from({length:8},(_,i)=>({pivot:[i*10,0,0],axis:[0,0,1],gain:1,motor:i-1})),rows=Array.from({length:61},(_,i)=>Array(7).fill(i*10));
 let profile={rows:{R:{original:rows,edited:rows},L:{original:rows,edited:rows}},rate:1,curve:null,delays:{R:1,L:0},config:{resolution:4096,R:{zero:Array(7).fill(0),joints},L:{zero:Array(7).fill(0),joints}}};
