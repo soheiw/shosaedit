@@ -4,7 +4,7 @@
 
 ShosaEdit is a local web app for replaying recorded robot-arm motions in 3D and editing each arm's speed, delay, and smoothing while comparing the result with the original. You can save edited motions under new names or export them in the original CSV format.
 
-The repository includes Augmented Arms CAD geometry imported from Fusion, along with motion data. The interface supports Japanese and English. The screenshots below show the Japanese interface; use the language selector to switch to English.
+The repository runs with a coarse simplified model and motion data. Detailed CAD is obtained separately and kept locally. The interface supports Japanese and English. The screenshots below show the Japanese interface; use the language selector to switch to English.
 
 ![Original and edited motions compared at the same elapsed time](docs/images/overview.jpg)
 
@@ -59,7 +59,6 @@ If a pose extends outside the view, press **Fit all** at that pose.
 
 ## Independent arm speeds and delay
 
-![Independent arm rates, LINK, Bézier speed curve, and delay controls](docs/images/timing.jpg)
 
 By default, the right and left arms have separate settings.
 
@@ -85,7 +84,6 @@ Use **Protect a time interval** to preserve a section of motion. Smoothing windo
 
 ## Save an edited motion under a new name
 
-![Named motion saving and right/left CSV export](docs/images/save-motion.jpg)
 
 Under **Save or export edited motion**, enter a name and press **Save as new motion**.
 
@@ -113,9 +111,8 @@ CSV exports use **30 fps, no header, integer motor counts, 9 right-arm columns, 
 
 ## Per-motor loads and limits
 
-![A single exceeded axis flags the entire motion in the per-motor table](docs/images/motor-loads.jpg)
 
-The 0.50 N·m value in this screenshot is a display-test example, not a recommended operating limit. Limits are unset by default.
+
 
 **Per-motor limit comparison** lists **all 14 modeled shoulder-to-wrist axes across both arms**. R1–R7 and L1–L7 number joints from the shoulder; they have not been matched to hardware motor IDs. Finger drives are excluded.
 
@@ -140,10 +137,33 @@ Joint torque from gravity and motion is estimated using CAD geometry, manufactur
 
 Hardware joint limits, calibration, cables, and whole-arm collisions during motion remain unverified. Estimated loads and visual consistency do not constitute hardware safety validation.
 
+## Simplified display and optional detailed CAD
+
+Use **Model → Auto / Simplified / Detailed CAD**. Auto displays detailed CAD when available and otherwise uses the simplified model. Simplified geometry retains the outlines of the main CAD components, reduces their polygon count while preserving shape, and omits small hardware. Joint axes, hierarchy, reference angles, motions, and CSV exports remain identical across display modes. Detailed appearance and geometric collisions are not reproduced by the proxies.
+
+Detailed CAD is excluded from GitHub. Obtain this app's exported CAD pair separately, place it here, and click **Reload model**:
+
+```text
+private-model/
+  model.json
+  model.bin
+  mass-shapes.json  # optional: recalculate masses from material settings
+```
+
+![Directory guidance when detailed CAD is absent](docs/images/model-missing.jpg)
+
+Both `model.json` and `model.bin` are required. This is not a generic STL or Fusion importer. Selecting Detailed CAD without the files keeps the simplified model visible and displays: **You need to put model.json and model.bin in the private-model/ directory to display detailed CAD.**
+
+The private-model data files are Git-ignored. Do not force-add them. Previously committed CAD geometry and CAD screenshots have also been removed from main's history. Collaborators with older clones should clone the repository again.
+
+Load estimates retain the same aggregate link masses, centers of mass, and inertia tensors. They do not derive mass from the simplified display geometry. Manual link mass/COM editing works without CAD; material-based recalculation requires the optional `mass-shapes.json`.
+
+![Close-up of the simplified hand geometry](docs/images/model-closeup.jpg)
+
 ## Model and joint assumptions
 
-- The viewer displays 250 bodies imported from Fusion's `RightHand260507_urdf`, assigned to `link_0`–`link_7`. Fingers and tendon-related parts are fixed to `link_7`.
-- The right arm uses the imported CAD geometry; the left arm is a provisional mirror of the right.
+- The joint model uses `link_0`–`link_7`. Fingers and tendon-related parts are fixed to `link_7`.
+- The left arm is a provisional mirror of the right. Optional local CAD restores the original component shapes.
 - Input columns 1–7 drive the shoulder-to-wrist joints. Columns 8/9, where present, are retained and exported but do not animate fingers.
 - The side with two small visible motors is the palm. **Hide hand covers** helps inspect this identifying feature.
 - **Joint mapping and reference pose** lets you change input IDs, rotation directions, axes, and reference angles. Physical calibration is still required.
@@ -168,7 +188,9 @@ Checks cover independent playback clocks, delay, CSV sampling, LINK switching an
 | `speed-curve.js` / `arm-delay.js` / `smoothing.js` | Speed, delay, and smoothing |
 | `saved-motions.js` / `motion-files.js` / `export-motion.js` | Named saves, import, and export |
 | `load-physics.js` / `load-panel.js` / `mass-model.js` / `motor-loads.js` | Load estimation and mass model |
-| `model.json` / `model.bin` | Imported CAD geometry |
+| `simple-model.js` / `simple-shapes.js` / `model-loader.js` | Coarse component outlines and optional local CAD |
+| `mass-properties.json` | Aggregate link mass, COM, and inertia without surface geometry |
+| `private-model/README.txt` | Instructions for separately obtained CAD |
 | `motions.json` / `*.motion.json` | Original recordings and generated motions |
 | `tests/` | Numerical and settings checks |
 
@@ -176,4 +198,4 @@ See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlie
 
 ## Licenses and data
 
-The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its CAD and motion data. Check the rights for each asset before publishing or redistributing it.
+The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its motion data; detailed CAD is not distributed. Check the rights for each asset before publishing or redistributing it.

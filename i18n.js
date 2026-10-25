@@ -1,5 +1,23 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+"モデル":"Model",
+"自動":"Auto",
+"簡易":"Simplified",
+"詳細CAD":"Detailed CAD",
+"モデルを再読み込み":"Reload model",
+"簡易モデル · 関節動作は共通 · 指固定":"Simplified model · same joint motion · fingers fixed",
+"詳細CAD（ローカル）":"Detailed CAD (local)",
+"詳細CADを表示するには private-model/ に model.json と model.bin を配置してください。":"You need to put model.json and model.bin in the private-model/ directory to display detailed CAD.",
+"詳細CADを読み込めないため簡易モデルを表示しています。private-model/ のファイルを確認してください。":"Could not load detailed CAD. Showing the simplified model. Check the files in private-model/.",
+"主要部品の形を残し、小さな部品と細部を省いた表示です。関節動作と負荷計算は詳細版と共通です。":"Main component shapes are retained; small hardware and fine details are omitted. Joint motion and load calculations match the detailed model.",
+"詳細CADは private-model/ のローカルデータから表示しています。":"Detailed CAD is loaded from local files in private-model/.",
+"材料からの再計算には private-model/mass-shapes.json が必要です。リンクの質量・重心は直接編集できます。":"Material recalculation requires private-model/mass-shapes.json. Link mass and center of mass can still be edited directly.",
+"部品を選択すると所属リンクを確認できます。":"Select a part to see its link.",
+"（簡易表示の所属）":" (simplified model link)",
+"肩から手首までの関節モデル":"Shoulder-to-wrist joint model",
+"指はlink_7に固定。表示形状にかかわらず関節と動作データは共通です。実機は未校正です。":"Fingers are fixed to link_7. Joint and motion data are shared across display modes. Hardware is uncalibrated.",
+"モデルを読み込んでいます…":"Loading model…",
+
 "現在値を表示中（許容値未設定）":"Showing current values; torque limits are not set",
 "モーター別の上限比較":"Per-motor limit comparison",
 "R1〜R7／L1〜L7は肩からの関節番号です。実機IDとは未照合。指駆動は計算対象外です。":"R1–R7 / L1–L7 count joints from the shoulder. Hardware IDs are unverified. Finger drives are excluded.",

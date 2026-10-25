@@ -10,3 +10,22 @@ tests/*-report.json
 *.[uU][rR][dD][fF]
 *.[uU][rR][dD][fF].*
 *.[xX][aA][cC][rR][oO]
+
+# Optional detailed CAD assets stay on each collaborator's own machine.
+/private-model/*
+!/private-model/README.txt
+/model.json
+/model.bin
+/mass-shapes.json
+*.stl
+*.obj
+*.dae
+*.step
+*.stp
+*.iges
+*.igs
+*.f3d
+*.f3z
+*.fbx
+*.glb
+*.gltf

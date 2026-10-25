@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {createSimpleModel} from '../simple-model.js';
+import {loadDisplayModel,loadMassProperties,missingCADMessage,validateCAD} from '../model-loader.js';
+const missing=async()=>({status:404,ok:false});
+let requests=0;const noFetch=async()=>{requests++;throw Error('must not fetch')};
+let a=await loadDisplayModel('simple',noFetch);assert.equal(a.model.kind,'simple');assert.equal(requests,0);
+a=await loadDisplayModel('auto',missing);assert.equal(a.model.kind,'simple');assert.equal(a.notice,'');
+a=await loadDisplayModel('cad',missing);assert.equal(a.model.kind,'simple');assert.equal(a.notice,missingCADMessage);
+const fixture=createSimpleModel(),cadFetch=async url=>url.endsWith('model.json')?{status:200,ok:true,json:async()=>fixture.model}:{status:200,ok:true,arrayBuffer:async()=>fixture.bin};
+a=await loadDisplayModel('cad',cadFetch);assert.equal(a.model.kind,'cad');assert.equal(a.bin,fixture.bin);
+const partial=async url=>url.endsWith('model.json')?cadFetch(url):missing();a=await loadDisplayModel('auto',partial);assert.equal(a.model.kind,'simple');assert.equal(a.notice,missingCADMessage);
+const broken={...fixture.model,bodies:[{...fixture.model.bodies[0],positionOffset:3}]};assert.throws(()=>validateCAD(broken,fixture.bin));
+const badIndex=fixture.bin.slice(0);new Uint32Array(badIndex,fixture.model.bodies[0].indexOffset,1)[0]=999999;assert.throws(()=>validateCAD(fixture.model,badIndex));
+a=await loadDisplayModel('cad',async()=>{throw Error('network')});assert.equal(a.model.kind,'simple');assert.ok(a.notice);
+const publicProps={links:Array(7).fill({}),materialComponents:undefined};let paths=[];const sharedMass=await loadMassProperties(async url=>{paths.push(url);return url.startsWith('private-model/')?missing():{ok:true,json:async()=>publicProps}});assert.equal(sharedMass.privateMaterials,false);assert.deepEqual(paths,['private-model/mass-shapes.json','mass-properties.json']);
+const privateProps={links:Array(7).fill({}),materialComponents:[]};const privateMass=await loadMassProperties(async()=>({ok:true,json:async()=>privateProps}));assert.equal(privateMass.privateMaterials,true);
+console.log('Model loader: public simple without private fetch, auto/detail fallback message, optional CAD pair, malformed data, and optional private mass data passed.');
