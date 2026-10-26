@@ -1,5 +1,11 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+'メーカーのストールトルクを入力（暫定）':'Fill manufacturer stall torques (provisional)',
+'仕様欄で選択した電圧の値を入力します。既定はメーカー推奨電圧。型番未確定の軸は変更しません。ストール値は連続運転の許容値ではありません。':'Uses the selected specification voltage, initially the manufacturer recommendation. Unknown models are unchanged. Stall values are not continuous operating limits.',
+'ストール値の入力は暫定比較用です。連続運転の許容値とは区別してください。':'Stall values are provisional comparison thresholds, distinct from continuous operating limits.',
+'暫定ストール値':'Provisional stall torque',
+'電圧の選択は仕様表示とストール暫定値の入力に使います。変更後は「メーカーのストールトルクを入力（暫定）」で再入力してください。':'Voltage controls the specification display and provisional stall preset. After changing it, apply the stall preset again.',
+
 '動作をつなぐ':'Motion sequence',
 '記録の読み込み先':'Import recording into','動きのリスト':'Motion library','未登録':'Empty',
 'WARNING表示のしきい値（許容値の%）':'WARNING threshold (% of limit)',

@@ -17,12 +17,20 @@ export function assessMotorLoads(results,limits={},time=0,warningPercent=80){
  const warnings=motors.filter(m=>m.warning),currentWarnings=motors.filter(m=>m.currentWarning);
  return {motors,missing,over,currentOver,warnings,currentWarnings,warningPercent,worst:ranked[0]??null,status:over.length?'over':warnings.length?'warning':missing.length?'incomplete':'within'};
 }
-export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,onLimitsChange=()=>{}}){
+export function stallTorquePreset(specs,mapping,voltages={}){
+ const entries={};for(const side of SIDES)for(let j=1;j<=7;j++){
+  const model=specs?.models?.find(m=>m.id===mapping?.confirmed?.[j]);if(!model)continue;
+  const voltage=voltages[model.id]??model.recommendedVoltage,point=model.points.find(p=>p.voltage===voltage);
+  if(point&&finite(point.stallTorqueNm)&&point.stallTorqueNm>0)entries[side+j]={value:point.stallTorqueNm,voltage,model:model.id};
+ }return entries;
+}
+export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,motorSpecs,getVoltages=()=>({}),onLimitsChange=()=>{}}){
  let limits={};try{const saved=JSON.parse(localStorage.getItem(key));for(const side of SIDES)for(let j=1;j<=7;j++){const id=side+j;if(finite(saved?.[id])&&saved[id]>0)limits[id]=saved[id];}}catch{}
  let warningPercent=80;try{const saved=JSON.parse(localStorage.getItem(warningKey));if(validWarningPercent(saved))warningPercent=saved;}catch{}
+ let references={};try{const saved=JSON.parse(localStorage.getItem(key+'-references'));for(const [id,r] of Object.entries(saved??{}))if(r&&r.value===limits[id]&&finite(r.voltage)&&typeof r.model==='string')references[id]=r;}catch{}
  const invalid=new Set();
  let results=null,time=0,report;
- host.innerHTML=`<h3>モーター別の上限比較</h3><p class="load-help">R1〜R7／L1〜L7は肩からの関節番号です。実機IDとは未照合。指駆動は計算対象外です。</p><label class="motor-warning-setting">WARNING表示のしきい値（許容値の%） <input aria-label="WARNING表示のしきい値（%）" data-motor-warning type="number" min="0" max="100" step="any" value="${warningPercent}"></label><p data-motor="settings-error" class="motor-verdict" role="alert" hidden></p><p data-motor="verdict" class="motor-verdict" role="status"></p><p data-motor="now" class="load-help" aria-live="off"></p><button type="button" data-motor="worst">最大比の時刻へ</button><details open><summary>左右14軸の一覧・許容値</summary><p class="load-help">各軸の重力＋動作トルクの絶対値。現在値は修正後、最大値は元 → 修正です。各許容値は運用条件に合わせてN·mで入力してください。ストールトルクを連続許容値として自動設定しません。</p><table class="motor-limit-table"><thead><tr><th>モーター</th><th>現在／最大 N·m</th><th>許容 N·m／最大比</th></tr></thead><tbody>${SIDES.flatMap(side=>Array.from({length:7},(_,j)=>{const id=side+(j+1),model=motorMapping?.confirmed?.[String(j+1)]??'型番未確定';return `<tr data-motor-row="${id}"><th><button type="button" data-motor-select="${id}" title="${model}">${id}</button><small data-motor-state="${id}"></small></th><td><b data-motor-current="${id}">—</b><small data-motor-peak="${id}">—</small><small data-motor-extra="${id}"></small></td><td><input aria-label="${id} 許容トルク N·m" type="number" min="0" step="any" placeholder="未設定" data-motor-limit="${id}" value="${limits[id]??''}"><small data-motor-ratio="${id}">—</small></td></tr>`;})).join('')}</tbody></table></details><p class="load-help">許容値は両腕それぞれに保存し、すべてのMotionで共通です。1軸でも超過すれば全体を「超過あり」と表示します。これは推定トルクの比較で、実機の電流・温度・停止判定を再現したものではありません。</p>`;
+ host.innerHTML=`<h3>モーター別の上限比較</h3><p class="load-help">R1〜R7／L1〜L7は肩からの関節番号です。実機IDとは未照合。指駆動は計算対象外です。</p><button type="button" data-motor="stall">メーカーのストールトルクを入力（暫定）</button><p class="load-help">仕様欄で選択した電圧の値を入力します。既定はメーカー推奨電圧。型番未確定の軸は変更しません。ストール値は連続運転の許容値ではありません。</p><label class="motor-warning-setting">WARNING表示のしきい値（許容値の%） <input aria-label="WARNING表示のしきい値（%）" data-motor-warning type="number" min="0" max="100" step="any" value="${warningPercent}"></label><p data-motor="settings-error" class="motor-verdict" role="alert" hidden></p><p data-motor="verdict" class="motor-verdict" role="status"></p><p data-motor="now" class="load-help" aria-live="off"></p><button type="button" data-motor="worst">最大比の時刻へ</button><details open><summary>左右14軸の一覧・許容値</summary><p class="load-help">各軸の重力＋動作トルクの絶対値。現在値は修正後、最大値は元 → 修正です。各許容値は運用条件に合わせてN·mで入力してください。ストール値の入力は暫定比較用です。連続運転の許容値とは区別してください。</p><table class="motor-limit-table"><thead><tr><th>モーター</th><th>現在／最大 N·m</th><th>許容 N·m／最大比</th></tr></thead><tbody>${SIDES.flatMap(side=>Array.from({length:7},(_,j)=>{const id=side+(j+1),model=motorMapping?.confirmed?.[String(j+1)]??'型番未確定';return `<tr data-motor-row="${id}"><th><button type="button" data-motor-select="${id}" title="${model}">${id}</button><small data-motor-state="${id}"></small></th><td><b data-motor-current="${id}">—</b><small data-motor-peak="${id}">—</small><small data-motor-extra="${id}"></small></td><td><input aria-label="${id} 許容トルク N·m" type="number" min="0" step="any" placeholder="未設定" data-motor-limit="${id}" value="${limits[id]??''}"><small data-motor-ratio="${id}">—</small><small data-motor-reference="${id}"></small></td></tr>`;})).join('')}</tbody></table></details><p class="load-help">許容値は両腕それぞれに保存し、すべてのMotionで共通です。1軸でも超過すれば全体を「超過あり」と表示します。これは推定トルクの比較で、実機の電流・温度・停止判定を再現したものではありません。</p>`;
  const $=name=>host.querySelector(`[data-motor="${name}"]`);
  const text=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
  function update(recalculate=true){
@@ -40,6 +48,7 @@ export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,onLimits
   const configured=report.motors.filter(m=>m.available&&m.limit!==null).length;
   text($('now'),!ready?'—':!configured?'現在値を表示中（許容値未設定）':report.currentOver.length?`現在の超過：${report.currentOver.map(m=>m.id).join('、')}`:report.currentWarnings.length?`現在のWARNING：${report.currentWarnings.map(m=>m.id).join('、')}`:'現在の超過なし（設定済みの軸のみ）');
   for(const m of report.motors){
+   if(recalculate){const r=references[m.id];text(host.querySelector(`[data-motor-reference="${m.id}"]`),r?`暫定ストール値 · ${r.voltage} V`:'');}
    text(host.querySelector(`[data-motor-current="${m.id}"]`),m.available?fmt(m.current):'—');
    if(recalculate){
     host.querySelector(`[data-motor-row="${m.id}"]`).dataset.state=!m.available?'pending':m.over?'over':m.warning?'warning':m.limit?'within':'incomplete';
@@ -56,10 +65,17 @@ export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,onLimits
   // An empty torque limit is deliberately unset; malformed/invalid entries retain the last valid value.
   const valid=isWarning?validWarningPercent(v):(raw===''&&!input.validity?.badInput)||finite(v)&&v>0;
   if(!valid){invalid.add(field);input.setCustomValidity(isWarning?'WARNINGは0より大きく100以下で入力してください':'0より大きい許容トルクを入力してください');}
-  else{invalid.delete(field);input.setCustomValidity('');if(isWarning)warningPercent=v;else if(raw==='')delete limits[id];else limits[id]=v;try{localStorage.setItem(isWarning?warningKey:key,JSON.stringify(isWarning?warningPercent:limits));}catch{}}
+  else{invalid.delete(field);input.setCustomValidity('');if(!isWarning){delete references[id];try{localStorage.setItem(key+'-references',JSON.stringify(references));}catch{}}if(isWarning)warningPercent=v;else if(raw==='')delete limits[id];else limits[id]=v;try{localStorage.setItem(isWarning?warningKey:key,JSON.stringify(isWarning?warningPercent:limits));}catch{}}
   input.dataset.invalid=String(!valid);update();onLimitsChange();
  });
  host.addEventListener('click',e=>{const target=e.target.closest('[data-motor-select]');if(target){const id=target.dataset.motorSelect;onSelect(id[0],Number(id.slice(1))-1);}});
+ $('stall').disabled=!motorSpecs?.models?.length;
+ $('stall').onclick=()=>{
+  const preset=stallTorquePreset(motorSpecs,motorMapping,getVoltages());
+  for(const [id,r] of Object.entries(preset)){limits[id]=r.value;references[id]=r;invalid.delete(id);const input=host.querySelector(`[data-motor-limit="${id}"]`);input.value=r.value;input.setCustomValidity('');input.dataset.invalid='false';}
+  try{localStorage.setItem(key,JSON.stringify(limits));localStorage.setItem(key+'-references',JSON.stringify(references));}catch{}
+  update();onLimitsChange();
+ };
  $('worst').onclick=()=>{const w=report?.worst;if(w){onSelect(w.side,w.j);onSeek(w.peakTime);}};update();
  return {setResults(value){results=value;update();},updateTime(value){if(value===time&&report)return;time=value;update(false);},snapshot:()=>report,getLimits:()=>({...limits}),getWarningPercent:()=>warningPercent,hasInvalidSettings:()=>invalid.size>0};
 }

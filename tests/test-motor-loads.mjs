@@ -39,3 +39,15 @@ const warningReload=createMotorLoadPanel(new Node(),{onSelect(){},onSeek(){}});a
 for(const value of [0,101,NaN]){warningInput.value=String(value);warningInput.valueAsNumber=value;host.listeners.input({target:warningInput});assert.equal(panel.getWarningPercent(),50);assert.equal(panel.hasInvalidSettings(),true);assert.ok(warningInput.error);}
 warningInput.value='100';warningInput.valueAsNumber=100;host.listeners.input({target:warningInput});assert.equal(panel.getWarningPercent(),100);assert.equal(panel.hasInvalidSettings(),false);assert.equal(warningInput.error,'');assert.ok(changes>=10);
 console.log('Motor limits: both arms/14axes, one-motor exceedance, missing limits, signed crossings/exposure, worst time, live torque, persistence and clearing passed.');
+
+// Presets use confirmed models and exact published voltages, never a guessed model or extrapolation.
+const {stallTorquePreset}=await import('../motor-loads.js');
+const {readFile}=await import('node:fs/promises');
+const specs=JSON.parse(await readFile(new URL('../motor-specs.json',import.meta.url))),mapping=JSON.parse(await readFile(new URL('../motor-models.json',import.meta.url)));
+const preset=stallTorquePreset(specs,mapping);assert.equal(Object.keys(preset).length,12);
+for(const side of ['R','L']){for(const j of [1,2,4])assert.equal(preset[side+j].value,7.3);assert.equal(preset[side+'3'].value,4.1);assert.equal(preset[side+'5'],undefined);for(const j of [6,7]){assert.equal(preset[side+j].value,.92);assert.equal(preset[side+j].voltage,11.1);}}
+assert.equal(stallTorquePreset(specs,mapping,{'XC330-T288-T':12}).R6.value,1);assert.equal(stallTorquePreset(specs,mapping,{'XC330-T288-T':10}).R6,undefined);
+const presetHost=new Node(),presetPanel=createMotorLoadPanel(presetHost,{motorMapping:mapping,motorSpecs:specs,onSelect(){},onSeek(){}});presetHost.querySelector('[data-motor="stall"]').onclick();assert.equal(presetPanel.getLimits().R1,7.3);assert.equal(presetPanel.getLimits().L7,.92);assert.equal(presetPanel.getLimits().L5,undefined);
+assert.equal(createMotorLoadPanel(new Node(),{onSelect(){},onSeek(){}}).getLimits().L7,.92);
+assert.match(presetHost.querySelector('[data-motor-reference="R6"]').textContent,/11.1 V/);
+console.log('Stall preset: all confirmed axes, published voltage selection, unknown-model exclusion, no interpolation, UI fill and persisted provisional references passed.');
