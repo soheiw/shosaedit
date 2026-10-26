@@ -139,7 +139,7 @@ CAD由来の形状、メーカーのモーター重量、仮定した部品質�
 
 ## 簡易表示と詳細CADの切り替え
 
-「モデル」で「自動」「簡易」「詳細CAD」を選べます。自動はCADがあれば詳細、なければ簡易を表示します。簡易モデルは元CADの主要部品の外形を残し、外形を保つようにポリゴンを削減したものです。小さなネジなどを省略します。関節軸・階層・基準角・動作・CSV出力は詳細CAD表示と共通ですが、細かな外観や形状による干渉は再現しません。
+「モデル」で「自動」「簡易」「詳細CAD」を選べます。自動はCADがあれば詳細、なければ簡易を表示します。簡易モデルは棒・球・直方体などの組み合わせです。主要部品のおおよその配置・寸法・太さを合わせ、穴や凹凸、ネジなどの細部を省略しています。黄色い手の面が手のひら、暗い面が手の甲です。関節軸・階層・基準角・動作・CSV出力は詳細CAD表示と共通ですが、細かな外観や形状による干渉は再現しません。
 
 詳細CADはGitHubに含めません。別途入手した、このアプリ用に書き出したファイルを次の場所に置き、「モデルを再読み込み」を押してください。
 
@@ -150,7 +150,6 @@ private-model/
   mass-shapes.json  # 任意：材料設定からの質量再計算用
 ```
 
-![詳細CADがない場合の英語案内](docs/images/model-missing.jpg)
 
 `model.json`と`model.bin`は対で必要です。任意のSTLやFusionファイルの直接読み込みには対応しません。CADがない状態で「詳細CAD」を選ぶと、配置先を案内して簡易表示を続けます。英語表示では “You need to put model.json and model.bin in the private-model/ directory to display detailed CAD.” と表示します。
 
@@ -188,7 +187,7 @@ npm test
 | `speed-curve.js` / `arm-delay.js` / `smoothing.js` | 速度・時間差・平滑化 |
 | `saved-motions.js` / `motion-files.js` / `export-motion.js` | 名前付き保存・読み込み・書き出し |
 | `load-physics.js` / `load-panel.js` / `mass-model.js` / `motor-loads.js` | 負荷推定と質量モデル |
-| `simple-model.js` / `simple-shapes.js` / `model-loader.js` | 部品外形を簡略化した形状とローカルCAD切り替え |
+| `simple-model.js` / `simple-primitives.js` / `model-loader.js` | 基本図形による簡易表示とローカルCAD切り替え |
 | `mass-properties.json` | リンク別の質量・重心・慣性（形状を含まない） |
 | `private-model/README.txt` | 別途入手するCADの配置案内 |
 | `motions.json` / `*.motion.json` | 元記録と作成済み動作 |

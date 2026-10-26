@@ -139,7 +139,7 @@ Hardware joint limits, calibration, cables, and whole-arm collisions during moti
 
 ## Simplified display and optional detailed CAD
 
-Use **Model → Auto / Simplified / Detailed CAD**. Auto displays detailed CAD when available and otherwise uses the simplified model. Simplified geometry retains the outlines of the main CAD components, reduces their polygon count while preserving shape, and omits small hardware. Joint axes, hierarchy, reference angles, motions, and CSV exports remain identical across display modes. Detailed appearance and geometric collisions are not reproduced by the proxies.
+Use **Model → Auto / Simplified / Detailed CAD**. Auto displays detailed CAD when available and otherwise uses the simplified model. Simplified geometry combines boxes, rods and spheres, preserving approximate placement, size and thickness. Holes, indentations and small hardware are omitted. The yellow hand face marks the palm; the dark face marks the back. Joint axes, hierarchy, reference angles, motions, and CSV exports remain identical across display modes. Detailed appearance and geometric collisions are not reproduced by the proxies.
 
 Detailed CAD is excluded from GitHub. Obtain this app's exported CAD pair separately, place it here, and click **Reload model**:
 
@@ -150,7 +150,6 @@ private-model/
   mass-shapes.json  # optional: recalculate masses from material settings
 ```
 
-![Directory guidance when detailed CAD is absent](docs/images/model-missing.jpg)
 
 Both `model.json` and `model.bin` are required. This is not a generic STL or Fusion importer. Selecting Detailed CAD without the files keeps the simplified model visible and displays: **You need to put model.json and model.bin in the private-model/ directory to display detailed CAD.**
 
@@ -188,7 +187,7 @@ Checks cover independent playback clocks, delay, CSV sampling, LINK switching an
 | `speed-curve.js` / `arm-delay.js` / `smoothing.js` | Speed, delay, and smoothing |
 | `saved-motions.js` / `motion-files.js` / `export-motion.js` | Named saves, import, and export |
 | `load-physics.js` / `load-panel.js` / `mass-model.js` / `motor-loads.js` | Load estimation and mass model |
-| `simple-model.js` / `simple-shapes.js` / `model-loader.js` | Coarse component outlines and optional local CAD |
+| `simple-model.js` / `simple-primitives.js` / `model-loader.js` | Primitive geometry and optional local CAD |
 | `mass-properties.json` | Aggregate link mass, COM, and inertia without surface geometry |
 | `private-model/README.txt` | Instructions for separately obtained CAD |
 | `motions.json` / `*.motion.json` | Original recordings and generated motions |

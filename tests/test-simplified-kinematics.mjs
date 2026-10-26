@@ -80,6 +80,7 @@ assert.deepEqual(simplePivots,P,'simplified model uses the same native anchors')
 const simple=createSimpleModel();
 assert.equal(simple.model.kind,'simple');
 assert.equal(simple.model.fingersFixed,true);
+assert.ok(simple.model.bodies.reduce((n,b)=>n+b.indexCount/3,0)<5000,'simplified display must remain lightweight primitive geometry');
 assert.deepEqual([...new Set(simple.model.bodies.map(b=>b.group))].sort(),[0,1,2,3,4,5,6,7]);
 for(const body of simple.model.bodies){
  assert.equal(body.source,'simplified');
