@@ -10,6 +10,7 @@ import * as THREE from '../vendor/three.module.js';
 import {exportRows} from '../export-motion.js';
 import {createPlaybackClock} from '../arm-delay.js';
 import {defaultPoints} from '../speed-curve.js';
+import {loadDisplayModel} from '../model-loader.js';
 import {createSimpleModel,simplePivots} from '../simple-model.js';
 
 const root=new URL('../',import.meta.url),read=name=>fs.readFileSync(new URL(name,root),'utf8');
@@ -77,14 +78,14 @@ for(const [id,clip]of clips){
 
 // Exercise the actual public simplified geometry, not only marker triangles.
 assert.deepEqual(simplePivots,P,'simplified model uses the same native anchors');
-const simple=createSimpleModel();
+const simple=await loadDisplayModel('simple',async()=>{throw Error('simple display must not fetch private CAD');});
 assert.equal(simple.model.kind,'simple');
 assert.equal(simple.model.fingersFixed,true);
-assert.ok(simple.model.bodies.filter(b=>b.source!=='public-hand').reduce((n,b)=>n+b.indexCount/3,0)<5000,'simplified display must remain lightweight primitive geometry');
+assert.ok(simple.model.bodies.filter(b=>!['public-hand','public-left-hand'].includes(b.source)).reduce((n,b)=>n+b.indexCount/3,0)<5000,'simplified display must remain lightweight primitive geometry');
 assert.deepEqual([...new Set(simple.model.bodies.map(b=>b.group))].sort(),[0,1,2,3,4,5,6,7]);
 for(const body of simple.model.bodies){
- assert.ok(['simplified','public-hand'].includes(body.source));
- if(body.source==='public-hand')assert.equal(body.group,7,'only wrist-distal CAD is publicly included');
+ assert.ok(['simplified','public-hand','public-left-hand'].includes(body.source));
+ if(['public-hand','public-left-hand'].includes(body.source))assert.equal(body.group,7,'only wrist-distal CAD is publicly included');
  const positions=new Float32Array(simple.bin,body.positionOffset,body.vertexCount*3),indices=new Uint32Array(simple.bin,body.indexOffset,body.indexCount);
  assert.ok(positions.every(Number.isFinite));
  assert.ok(indices.every(i=>i<body.vertexCount));
@@ -94,7 +95,8 @@ for(const body of simple.model.bodies){
 const simpleState={rigs:{},meshes:[],side:'both',solo:-1,elapsed:0};
 const simpleRuntime=createRuntime(THREE,motions,simple.model,simpleState,new THREE.Scene(),$,side=>rows?.[side]??motions.clips['1'][side][0]);
 simpleRuntime.makeRigs(simple.bin);
-assert.equal(simpleState.meshes.length,simple.model.bodies.length*2,'every public primitive rendered independently on both arms');
+assert.equal(simpleState.meshes.length,simple.model.bodies.reduce((n,b)=>n+(b.side?1:2),0),'side-specific CAD is attached to its own arm');
+if(simple.model.leftHandActual){assert.ok(simpleState.meshes.filter(m=>m.userData.side==='L'&&m.userData.group===7).every(m=>m.userData.body.side==='L'));assert.ok(simpleState.meshes.filter(m=>m.userData.side==='R'&&m.userData.group===7).every(m=>m.userData.body.side==='R'));}
 for(const [id,clip]of clips)for(let frame=0;frame<Math.max(clip.R.length,clip.L.length);frame++){
  rows=Object.fromEntries(['R','L'].map(s=>[s,clip[s][Math.min(frame,clip[s].length-1)]]));
  checkPose(`simplified ${id}:${frame}`,simpleRuntime,simpleState);

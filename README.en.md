@@ -102,6 +102,10 @@ Click each panel heading to collapse or expand it; this browser remembers the st
 
 Recording buttons cover Motion 1–9. Slots 4–9 start empty. Choose a slot in **Import recording into**, then open a Motion JSON or paired CSV files to register it persistently in this browser.
 
+Detailed display loads the right arm from `private-model/model.json` and `model.bin`, and the actual left arm from `private-model/left-model.json` and `left-model.bin`. Left geometry is independently partitioned from its Fusion CAD, including the different hand. Simplified display uses `public-left-hand.js` for the actual left hand, with primitive arms. A missing-left fallback is explicitly labeled as mirrored right geometry.
+
+Left-hand-specific mass, COM and inertia have not yet been integrated; shared provisional load settings remain in use. Geometry integration does not validate physical joint ranges, cable clearance or motor signs.
+
 ## Live torque graph
 
 The fixed charts below playback show estimated absolute torque (N·m) for seven joints on each arm, a moving playback cursor, and current values. Click a graph to seek. Select one joint to show its configured limit and warning threshold; enable **Original (dotted)** to compare. Stale graphs disappear during recalculation. Values are estimates, not measurements.
