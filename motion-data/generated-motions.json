@@ -74,5 +74,9 @@
   {
     "id": "recorded-markb",
     "file": "markb.motion.json"
+  },
+  {
+    "id": "recorded-markc",
+    "file": "markc.motion.json"
   }
 ]
