@@ -1,3 +1,5 @@
+import {createOSCStream} from './osc-stream.js?v=2';
+import {createLiveTorquePlot} from './torque-live.js?v=1';
 import {createSequenceEditor} from './sequence-editor.js?v=overlap-2';
 import {loadDisplayModel,loadMassProperties} from './model-loader.js?v=public-hand-20261026';
 import {listSavedMotions,storeSavedMotion,uniqueMotionName} from './saved-motions.js?v=slots-2';
@@ -19,7 +21,7 @@ const parents=[-1,0,1,2,3,4,5,6];
 const axes=[[0,1,0],[0,0,1],[1,0,0],[0,1,0],[-1,0,0],[0,1,0],[0,0,1],[1,0,0]];
 const state={solo:-1,clip:'1',frame:0,playing:false,side:'both',chartSide:'R',elapsed:0,loop:true,rigs:{},meshes:[],selected:null,frameFloat:0,originalFrameFloat:0};
 let sequenceEditor,sequencePreviewId,sequenceActiveId;
-let initialGeometry,modelRevision=0,motions,model,config,renderer,scene,camera,controls,last=0,chartReady=false,speedEditor,delayEditor,timing,smoothing,loadPanel,massShapes,motorSpecs,motorMapping;
+let initialGeometry,modelRevision=0,motions,model,config,renderer,scene,camera,controls,last=0,chartReady=false,speedEditor,delayEditor,timing,smoothing,loadPanel,torquePlot,massShapes,motorSpecs,motorMapping;
 const savedKey='augmented-arms-fusion-links-v2';
 const modelModeKey='shosaedit-model-mode';
 function preferredModelMode(){try{const m=localStorage.getItem(modelModeKey);return ['auto','simple','cad'].includes(m)?m:'auto';}catch{return 'auto';}}
@@ -55,7 +57,7 @@ function updateReadout(){
  state.originalFrameFloat=Math.min(frameCount()-1,state.elapsed*30);state.frameFloat=sourceFrame(state.chartSide);state.frame=Math.floor(state.frameFloat);
  applyPose();const editorSide=speedEditor?.selectedSide()??'R';speedEditor?.cursor(sourceFrame(editorSide),frameCount(),editorSide);
  const outputFrame=Math.min(+$('timeline').max,Math.floor(state.elapsed*30));$('timeline').value=outputFrame;$('time').textContent=state.elapsed.toFixed(2);$('frame').textContent=`Frame ${outputFrame+1} / ${+$('timeline').max+1}`;
- const row=rowFor(state.chartSide);row.forEach((v,i)=>{const el=$('value-'+i);if(el)el.textContent=Math.round(v);});drawChart();loadPanel?.updateCursor({originalFrame:state.originalFrameFloat,editedTime:state.elapsed});
+ const row=rowFor(state.chartSide);row.forEach((v,i)=>{const el=$('value-'+i);if(el)el.textContent=Math.round(v);});drawChart();torquePlot?.updateTime(state.elapsed);loadPanel?.updateCursor({originalFrame:state.originalFrameFloat,editedTime:state.elapsed});
 }
 function setClip(clip){
  sequenceEditor?.markInactive();
@@ -100,7 +102,7 @@ function initLoadAnalysis(){
  loadPanel=createLoadPanel($('load-editor'),{shapes:massShapes,motorSpecs,motorMapping,
   getInputs:()=>({clip:state.clip,config,rate:1,curves:timing?.curves,delays:timing?.delays,curve:speedEditor.snapshot(),rows:Object.fromEntries(['R','L'].map(side=>[side,{original:motions.clips[state.clip][side],edited:smoothing.rows(state.clip,side)}]))}),
   onSeek:(frame,details)=>{state.playing=false;$('play').textContent='再生';setTime(details.time);},
-  onHeatChange:()=>{},onResults:updateLoadVerdict
+  onHeatChange:()=>{},onResults:()=>{updateLoadVerdict();torquePlot?.setResults(loadPanel?.getResults(),loadPanel?.getMotorAssessment());}
  });
 }
 function updateLoadVerdict(){
@@ -174,6 +176,11 @@ async function saveNamedMotion(){
  }catch(error){status.textContent='保存できません：'+error.message;}finally{button.disabled=false;}
 }
 async function importMotion(){const input=$('motion-file');try{const motion=await readMotionFiles([...input.files]);if(!motion)return;let hash=2166136261;for(const ch of JSON.stringify([motion.R,motion.L]))hash=Math.imul(hash^ch.charCodeAt(0),16777619);const matching=Object.keys(motions.clips).find(key=>JSON.stringify([motions.clips[key].R,motions.clips[key].L])===JSON.stringify([motion.R,motion.L]));const target=$('record-target').value,id=target||matching||'file-'+(hash>>>0).toString(16);if(target){await storeSavedMotion({id,createdAt:Date.now(),recording:{format:'augmented-arms-motion',version:1,fps:30,...motion}},{replace:true});registerMotion(id,motion);}else if(!motions.clips[id])registerMotion(id,motion);setClip(id);$('motion-file-status').textContent='読み込みました：'+motion.name;}catch(e){$('motion-file-status').textContent='読み込めません：'+e.message;}finally{input.value='';}}
+function oscFrame(){
+ const ready=!!loadPanel?.getResults(),arms={};
+ for(const side of ['R','L']){const row=rowFor(side);arms[side]={counts:row.map(Math.round),angles:config[side].joints.slice(1).map(j=>j.motor<0?0:(row[j.motor]-config[side].zero[j.motor])*2*Math.PI/config.resolution*j.gain),torque:ready?loadPanel.currentAtTime(side,false,state.elapsed):null};}
+ return {time:state.elapsed,playing:state.playing,arms};
+}
 function initializePanelFolds(){
  let saved={};try{saved=JSON.parse(localStorage.getItem('shosaedit-panel-folds-v1'))||{};}catch{}
  document.querySelectorAll('aside>section').forEach((section,index)=>{
@@ -202,4 +209,4 @@ if(!config.rightElbowDirectionV1){const j=config.R.joints[4];if(j.motor===3&&j.g
 if(!config.rightShoulderDirectionV1){const j=config.R.joints[2];if(j.motor===1&&j.gain===1&&j.axis.join(',')==='1,0,0')j.axis=[-1,0,0];config.rightShoulderDirectionV1=true;persist();}
 const bin=initialGeometry.bin;initScene();makeRigs(bin);speedEditor=createSpeedEditor($('speed-editor'),timingChanged);delayEditor=createArmDelayEditor($('delay-editor'),timingChanged);smoothing=createSmoothing($('smoothing-editor'),motions,()=>{updateReadout();loadPanel?.invalidate();});smoothing.setClip(state.clip);const library=await load('generated-motions.json');const loadedLibrary=await Promise.all(library.map(async entry=>({id:entry.id,motion:validateRecording(await load(entry.file))})));for(const entry of loadedLibrary)registerMotion(entry.id,entry.motion);
 try{for(const entry of await listSavedMotions()){try{registerMotion(entry.id,validateRecording(entry.recording));}catch{}}}catch{$('save-motion-status').textContent='保存済みの動きを読み込めませんでした。再読み込みしてください。';}
-bind();$('language').addEventListener('change',updateLoadVerdict);buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');await initializeSequenceEditor();initializePanelFolds();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}
+torquePlot=createLiveTorquePlot($('torque-live'),{onSeek:seconds=>{state.playing=false;$('play').textContent='再生';setTime(seconds);}});bind();$('language').addEventListener('change',updateLoadVerdict);buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');await initializeSequenceEditor();createOSCStream($('udp-editor'),{getFrame:oscFrame});initializePanelFolds();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}

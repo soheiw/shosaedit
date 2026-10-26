@@ -96,11 +96,35 @@ Edits are baked into the saved samples. On first selection, the saved motion ope
 
 **The browser's motion list and the downloaded file are separate.** Clearing site data removes the saved list. A different browser or URL port uses a different storage area. Keep the JSON file for backup or transfer, and reload it with **Open motion file**.
 
-## Joining separate recordings
+## Panels and recording slots
 
 Click each panel heading to collapse or expand it; this browser remembers the state. The timeline, playback controls and loop toggle stay below the fixed 3D view.
 
 Recording buttons cover Motion 1–9. Slots 4–9 start empty. Choose a slot in **Import recording into**, then open a Motion JSON or paired CSV files to register it persistently in this browser.
+
+## Live torque graph
+
+The fixed charts below playback show estimated absolute torque (N·m) for seven joints on each arm, a moving playback cursor, and current values. Click a graph to seek. Select one joint to show its configured limit and warning threshold; enable **Original (dotted)** to compare. Stale graphs disappear during recalculation. Values are estimates, not measurements.
+
+## OSC / UDP streaming to TouchDesigner
+
+In **OSC / UDP**, set the receiving PC's IP and port, then start streaming. Run through `python3 launch.py`; restart older servers to enable the relay. The destination is saved locally, but streaming never resumes automatically. Both arms share sequence numbers, approximately 30 fps; paused playback sends held values. Browser scheduling and background throttling affect cadence. Slow requests skip frames rather than queueing them.
+
+In TouchDesigner, use [OSC In CHOP](https://derivative.ca/UserGuide/OSC_In_CHOP), set **Network Port** to match, and enable **Active**. Network reachability and UDP firewall permissions are required. A successful send means the local OS accepted the datagram, not that TD received it.
+
+| OSC address | Value |
+|---|---|
+| `/shosaedit/R/count/1`–`9`, `/shosaedit/L/count/1`–`8` | Edited integer motor counts, including finger columns |
+| `/shosaedit/R/angle/1`–`7`, `/shosaedit/L/angle/1`–`7` | Calibrated joint angles, radians |
+| `/shosaedit/R/torque/1`–`7`, `/shosaedit/L/torque/1`–`7` | Signed estimated torque, N·m |
+| `/shosaedit/R/load_valid`, `/shosaedit/L/load_valid` | 1 when calculated; 0 during recalculation, with torque messages omitted |
+| `/shosaedit/time`, `/shosaedit/playing`, `/shosaedit/sequence` | Elapsed seconds, playing 1 / paused 0, frame sequence |
+
+Each address has one numeric argument. Frames use two OSC bundles (one per arm), each at most 1400 bytes. Streamed data includes speed, arm delay and smoothing, independent of display-only CAD pose or isolated-input controls. Streaming continues through load errors like the preview; it does not control motors or establish hardware safety.
+
+Relay checks: `python3 tests/test_osc_bridge.py` validates OSC contents, loopback UDP reception and same-origin HTTP restrictions.
+
+## Joining separate recordings
 
 Use **Motion sequence** to arrange multiple recordings into one motion.
 
