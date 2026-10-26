@@ -1,3 +1,4 @@
+import {watchSharedCalibration} from './shared-calibration.js';
 import {applyWristReference,rightWristReference} from './wrist-reference.js';
 import {createOSCStream} from './osc-stream.js?v=2';
 import {createLiveTorquePlot} from './torque-live.js?v=1';
@@ -21,7 +22,7 @@ const pivots=[[-13.0614,-559.9965,0],[-13.0614,-559.9965,-14],[-18.65,-559.9965,
 const parents=[-1,0,1,2,3,4,5,6];
 const axes=[[0,1,0],[0,0,1],[1,0,0],[0,1,0],[-1,0,0],[0,1,0],[0,0,1],[1,0,0]];
 const state={solo:-1,clip:'1',frame:0,playing:false,side:'both',chartSide:'R',elapsed:0,loop:true,rigs:{},meshes:[],selected:null,frameFloat:0,originalFrameFloat:0};
-let sequenceEditor,sequencePreviewId,sequenceActiveId;
+let sequenceEditor,sequencePreviewId,sequenceActiveId,sharedCalibration;
 let initialGeometry,modelRevision=0,motions,model,config,renderer,scene,camera,controls,last=0,chartReady=false,speedEditor,delayEditor,timing,smoothing,loadPanel,torquePlot,massShapes,motorSpecs,motorMapping;
 const savedKey='augmented-arms-fusion-links-v2';
 const modelModeKey='shosaedit-model-mode';
@@ -29,6 +30,13 @@ function preferredModelMode(){try{const m=localStorage.getItem(modelModeKey);ret
 function freshConfig(){const out={version:2,resolution:4096,R:{zero:[...motions.clips['1'].R[0]],joints:[]},L:{zero:[...motions.clips['1'].L[0]],joints:[]},bodyGroups:{}};for(const side of ['R','L'])out[side].joints=pivots.map((p,g)=>({pivot:[...p],axis:(side==='R'&&g===2?[-1,0,0]:side==='L'&&g===4?[1,0,0]:[...axes[g]]),motor:g===0?-1:g-1,gain:1}));out.R.zero[5]=rightWristReference;out.rightWristVideoReferenceV1=true;return out;}
 function validConfig(c){if(c?.version!==2||!Number.isFinite(c.resolution)||c.resolution<=0)throw Error('設定形式が違います');for(const side of ['R','L']){if(c[side]?.zero?.length!==(side==='R'?9:8)||!c[side].zero.every(Number.isFinite)||c[side]?.joints?.length!==8)throw Error('基準値または関節数が違います');for(const j of c[side].joints){if(![j.pivot,j.axis].every(a=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite))||!Number.isFinite(j.gain)||!Number.isInteger(j.motor)||j.motor< -1||j.motor>=c[side].zero.length||Math.hypot(...j.axis)<1e-6)throw Error('関節設定が不正です');}}return c;}
 function persist(){localStorage.setItem(savedKey,JSON.stringify(config));loadPanel?.invalidate();}
+function startCalibrationSync(){
+ sharedCalibration=watchSharedCalibration({key:savedKey,read:()=>localStorage.getItem(savedKey),current:()=>config,
+  validate:raw=>applyWristReference(validConfig(raw)),
+  apply:next=>{config=next;buildCalibration();rebuildRig();updateReadout();loadPanel?.invalidate();},
+  target:window,documentTarget:document});
+ sharedCalibration.sync();
+}
 function rowFor(side,original=false){
  const rows=!original&&smoothing?smoothing.rows(state.clip,side):motions.clips[state.clip][side];
  if(!original&&timing)return sampleAtTime(rows,state.elapsed,timing.clocks[side],timing.delays[side]);
@@ -132,7 +140,7 @@ function paintLoadColors(original){
 }
 
 async function exportMotion(side){
- try{const candidate=editedSequenceSource().clip,clip=state.clip;await validateOutput(candidate);const files={},summary=[];
+ try{sharedCalibration?.sync();const candidate=editedSequenceSource().clip,clip=state.clip;await validateOutput(candidate);const files={},summary=[];
  for(const arm of side?[side]:['R','L']){const rows=candidate[arm];files[`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}${arm}.csv`]=toCSV(rows);summary.push(`${arm==='R'?'右':'左'} ${rows.length}行・${(rows.length/motions.fps).toFixed(2)}秒`);}
  if(side)downloadFile(`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}${side}.csv`,Object.values(files)[0],'text/csv;charset=utf-8');else downloadFile(`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}_edited.zip`,zipFiles(files),'application/zip');
  $('export-status').textContent=`書き出しました：${summary.join(' ／ ')}`;
@@ -176,7 +184,7 @@ async function saveNamedMotion(){
   status.textContent='保存してリストに追加しました：'+name;
  }catch(error){status.textContent='保存できません：'+error.message;}finally{button.disabled=false;}
 }
-async function importMotion(){const input=$('motion-file');try{const motion=await readMotionFiles([...input.files]);if(!motion)return;let hash=2166136261;for(const ch of JSON.stringify([motion.R,motion.L]))hash=Math.imul(hash^ch.charCodeAt(0),16777619);const matching=Object.keys(motions.clips).find(key=>JSON.stringify([motions.clips[key].R,motions.clips[key].L])===JSON.stringify([motion.R,motion.L]));const target=$('record-target').value,id=target||matching||'file-'+(hash>>>0).toString(16);if(target){await storeSavedMotion({id,createdAt:Date.now(),recording:{format:'augmented-arms-motion',version:1,fps:30,...motion}},{replace:true});registerMotion(id,motion);}else if(!motions.clips[id])registerMotion(id,motion);setClip(id);$('motion-file-status').textContent='読み込みました：'+motion.name;}catch(e){$('motion-file-status').textContent='読み込めません：'+e.message;}finally{input.value='';}}
+async function importMotion(){const input=$('motion-file');try{sharedCalibration?.sync();const motion=await readMotionFiles([...input.files]);if(!motion)return;let hash=2166136261;for(const ch of JSON.stringify([motion.R,motion.L]))hash=Math.imul(hash^ch.charCodeAt(0),16777619);const matching=Object.keys(motions.clips).find(key=>JSON.stringify([motions.clips[key].R,motions.clips[key].L])===JSON.stringify([motion.R,motion.L]));const target=$('record-target').value,id=target||matching||'file-'+(hash>>>0).toString(16);if(target){await storeSavedMotion({id,createdAt:Date.now(),recording:{format:'augmented-arms-motion',version:1,fps:30,...motion}},{replace:true});registerMotion(id,motion);}else if(!motions.clips[id])registerMotion(id,motion);setClip(id);$('motion-file-status').textContent='読み込みました：'+motion.name;}catch(e){$('motion-file-status').textContent='読み込めません：'+e.message;}finally{input.value='';}}
 function oscFrame(){
  const ready=!!loadPanel?.getResults(),arms={};
  for(const side of ['R','L']){const row=rowFor(side);arms[side]={counts:row.map(Math.round),angles:config[side].joints.slice(1).map(j=>j.motor<0?0:(row[j.motor]-config[side].zero[j.motor])*2*Math.PI/config.resolution*j.gain),torque:ready?loadPanel.currentAtTime(side,false,state.elapsed):null};}
@@ -210,4 +218,4 @@ if(!config.rightElbowDirectionV1){const j=config.R.joints[4];if(j.motor===3&&j.g
 if(!config.rightShoulderDirectionV1){const j=config.R.joints[2];if(j.motor===1&&j.gain===1&&j.axis.join(',')==='1,0,0')j.axis=[-1,0,0];config.rightShoulderDirectionV1=true;persist();}
 const bin=initialGeometry.bin;initScene();makeRigs(bin);speedEditor=createSpeedEditor($('speed-editor'),timingChanged);delayEditor=createArmDelayEditor($('delay-editor'),timingChanged);smoothing=createSmoothing($('smoothing-editor'),motions,()=>{updateReadout();loadPanel?.invalidate();});smoothing.setClip(state.clip);const library=await load('motion-data/generated-motions.json');const loadedLibrary=await Promise.all(library.map(async entry=>({id:entry.id,motion:validateRecording(await load('motion-data/'+entry.file))})));for(const entry of loadedLibrary)registerMotion(entry.id,entry.motion);
 try{for(const entry of await listSavedMotions()){try{registerMotion(entry.id,validateRecording(entry.recording));}catch{}}}catch{$('save-motion-status').textContent='保存済みの動きを読み込めませんでした。再読み込みしてください。';}
-torquePlot=createLiveTorquePlot($('torque-live'),{onSeek:seconds=>{state.playing=false;$('play').textContent='再生';setTime(seconds);}});bind();$('language').addEventListener('change',updateLoadVerdict);buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');await initializeSequenceEditor();createOSCStream($('udp-editor'),{getFrame:oscFrame});initializePanelFolds();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}
+torquePlot=createLiveTorquePlot($('torque-live'),{onSeek:seconds=>{state.playing=false;$('play').textContent='再生';setTime(seconds);}});bind();$('language').addEventListener('change',updateLoadVerdict);buildCalibration();chartReady=true;initLoadAnalysis();startCalibrationSync();makeReadings();setClip('1');await initializeSequenceEditor();createOSCStream($('udp-editor'),{getFrame:oscFrame});initializePanelFolds();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}

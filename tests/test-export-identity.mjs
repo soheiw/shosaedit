@@ -31,7 +31,7 @@ for(const {id,m,stem} of clips)for(const enabled of [false,true]){
  const count=Math.max(m.R.length,m.L.length),curve={rate:1,enabled,points:defaultPoints()};
  const timing={editedDuration:count/30,curves:{R:curve,L:curve},delays:{R:0,L:0}};
  const build=new Function('state','motions','smoothing','timing','frameCount','exportRows','toCSV','zipFiles','downloadFile','validateOutput','$',
-  appFunction('editedSequenceSource')+'\n'+appFunction('exportMotion')+'\nreturn {exportMotion,editedSequenceSource};');
+  'const sharedCalibration={sync(){}};\n'+appFunction('editedSequenceSource')+'\n'+appFunction('exportMotion')+'\nreturn {exportMotion,editedSequenceSource};');
  const api=build(state,motions,{rows:(_,side)=>m[side]},timing,()=>count,exportRows,toCSV,zipFiles,
   (name,data)=>downloads.push({name,data}),async()=>{},id=>nodes[id]??=( {} ));
  await api.exportMotion();assert.equal(downloads.length,1);
