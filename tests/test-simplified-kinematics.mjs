@@ -80,10 +80,11 @@ assert.deepEqual(simplePivots,P,'simplified model uses the same native anchors')
 const simple=createSimpleModel();
 assert.equal(simple.model.kind,'simple');
 assert.equal(simple.model.fingersFixed,true);
-assert.ok(simple.model.bodies.reduce((n,b)=>n+b.indexCount/3,0)<5000,'simplified display must remain lightweight primitive geometry');
+assert.ok(simple.model.bodies.filter(b=>b.source!=='public-hand').reduce((n,b)=>n+b.indexCount/3,0)<5000,'simplified display must remain lightweight primitive geometry');
 assert.deepEqual([...new Set(simple.model.bodies.map(b=>b.group))].sort(),[0,1,2,3,4,5,6,7]);
 for(const body of simple.model.bodies){
- assert.equal(body.source,'simplified');
+ assert.ok(['simplified','public-hand'].includes(body.source));
+ if(body.source==='public-hand')assert.equal(body.group,7,'only wrist-distal CAD is publicly included');
  const positions=new Float32Array(simple.bin,body.positionOffset,body.vertexCount*3),indices=new Uint32Array(simple.bin,body.indexOffset,body.indexCount);
  assert.ok(positions.every(Number.isFinite));
  assert.ok(indices.every(i=>i<body.vertexCount));

@@ -1,4 +1,4 @@
-import {createSimpleModel} from './simple-model.js';
+import {createSimpleModel} from './simple-model.js?v=public-hand-20261026';
 export const privateModelDirectory='private-model/';
 export const missingCADMessage='詳細CADを表示するには private-model/ に model.json と model.bin を配置してください。';
 export function validateCAD(model,bin){

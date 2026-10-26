@@ -1,7 +1,7 @@
-import {loadDisplayModel,loadMassProperties} from './model-loader.js';
+import {loadDisplayModel,loadMassProperties} from './model-loader.js?v=public-hand-20261026';
 import {listSavedMotions,storeSavedMotion,uniqueMotionName} from './saved-motions.js';
 import {readMotionFiles,validateRecording} from './motion-files.js';
-import {initLanguage} from './i18n.js';
+import {initLanguage} from './i18n.js?v=public-hand-20261026';
 import {exportRows,toCSV,zipFiles,downloadFile} from './export-motion.js';
 import {createArmDelayEditor,createPlaybackClock,sampleAtTime} from './arm-delay.js';
 import {createSmoothing} from './smoothing.js?v=named-1';
@@ -67,7 +67,7 @@ function drawChart(){if(!motions)return;const canvas=$('chart'),ctx=canvas.getCo
 function buildCalibration(){const side=$('cal-side').value,c=config[side],base=side==='R'?1:11;$('resolution').value=config.resolution;$('zero-inputs').innerHTML=c.zero.map((v,i)=>`<label>ID ${base+i} 基準<input type="number" data-zero="${i}" value="${v}" step="1"></label>`).join('');$('mapping').innerHTML=c.joints.slice(1).map((j,k)=>{const g=k+1;return `<tr><td><span style="color:${palette[k%9]}">●</span> ${names[g]}</td><td><select data-j="${g}" data-field="motor"><option value="-1" ${j.motor===-1?'selected':''}>固定</option>${c.zero.map((_,i)=>`<option value="${i}" ${j.motor===i?'selected':''}>${base+i}</option>`).join('')}</select></td><td><input type="number" step="0.1" data-j="${g}" data-field="gain" value="${j.gain}"></td><td>${j.axis.map((v,i)=>`<input aria-label="${names[g]} 軸 ${'XYZ'[i]}" type="number" step="0.1" data-j="${g}" data-field="axis" data-i="${i}" value="${v}">`).join('')}</td><td>${j.pivot.map((v,i)=>`<input aria-label="${names[g]} 位置 ${'XYZ'[i]}" type="number" step="1" data-j="${g}" data-field="pivot" data-i="${i}" value="${v}">`).join('')}</td></tr>`;}).join('');}
 function showModelInfo(notice=''){
  const simple=model.kind==='simple';$('model-status').textContent=simple?'簡易モデル · 関節動作は共通 · 指固定':`${model.bodies.length}部品 · 詳細CAD（ローカル） · 指固定`;
- $('model-notice').textContent=notice|| (simple?'箱・棒・球による簡易表示です。手の黄色い面が手のひら、暗い面が手の甲です。関節動作と負荷計算は詳細版と共通です。':'詳細CADは private-model/ のローカルデータから表示しています。');
+ $('model-notice').textContent=notice|| (simple?'腕は箱・棒・球、手首より先は元のCAD形状で表示しています。関節動作と負荷計算は詳細版と共通です。':'詳細CADは private-model/ のローカルデータから表示しています。');
  $('hand-shells').disabled=simple;$('surfaces').disabled=simple;
 }
 async function switchDisplayModel(){

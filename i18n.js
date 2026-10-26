@@ -9,7 +9,7 @@ const words={
 "詳細CAD（ローカル）":"Detailed CAD (local)",
 "詳細CADを表示するには private-model/ に model.json と model.bin を配置してください。":"You need to put model.json and model.bin in the private-model/ directory to display detailed CAD.",
 "詳細CADを読み込めないため簡易モデルを表示しています。private-model/ のファイルを確認してください。":"Could not load detailed CAD. Showing the simplified model. Check the files in private-model/.",
-"箱・棒・球による簡易表示です。手の黄色い面が手のひら、暗い面が手の甲です。関節動作と負荷計算は詳細版と共通です。":"Simple boxes, rods and spheres. The yellow hand face is the palm; the dark face is the back. Joint motion and load calculations match the detailed model.",
+"腕は箱・棒・球、手首より先は元のCAD形状で表示しています。関節動作と負荷計算は詳細版と共通です。":"Arms use boxes, rods and spheres; the hand beyond the wrist uses original CAD geometry. Joint motion and load calculations match the detailed model.",
 "詳細CADは private-model/ のローカルデータから表示しています。":"Detailed CAD is loaded from local files in private-model/.",
 "材料からの再計算には private-model/mass-shapes.json が必要です。リンクの質量・重心は直接編集できます。":"Material recalculation requires private-model/mass-shapes.json. Link mass and center of mass can still be edited directly.",
 "部品を選択すると所属リンクを確認できます。":"Select a part to see its link.",

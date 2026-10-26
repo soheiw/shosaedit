@@ -139,9 +139,9 @@ Hardware joint limits, calibration, cables, and whole-arm collisions during moti
 
 ## Simplified display and optional detailed CAD
 
-Use **Model → Auto / Simplified / Detailed CAD**. Auto displays detailed CAD when available and otherwise uses the simplified model. Simplified geometry combines boxes, rods and spheres, preserving approximate placement, size and thickness. Holes, indentations and small hardware are omitted. The yellow hand face marks the palm; the dark face marks the back. Joint axes, hierarchy, reference angles, motions, and CSV exports remain identical across display modes. Detailed appearance and geometric collisions are not reproduced by the proxies.
+Use **Model → Auto / Simplified / Detailed CAD**. Auto displays detailed CAD when available and otherwise uses the simplified model. The simplified arms combine boxes, rods and spheres; the hand retains its original CAD geometry, preserving approximate placement, size and thickness. Holes, indentations and small hardware are omitted. The face with two small motors is the palm. Joint axes, hierarchy, reference angles, motions, and CSV exports remain identical across display modes. Detailed appearance and geometric collisions are not reproduced by the proxies.
 
-Detailed CAD is excluded from GitHub. Obtain this app's exported CAD pair separately, place it here, and click **Reload model**:
+Full-arm detailed CAD is excluded from GitHub. Wrist-distal geometry (link_7) is included with explicit authorization for public distribution. Obtain this app's exported CAD pair separately, place it here, and click **Reload model**:
 
 ```text
 private-model/
@@ -188,6 +188,7 @@ Checks cover independent playback clocks, delay, CSV sampling, LINK switching an
 | `saved-motions.js` / `motion-files.js` / `export-motion.js` | Named saves, import, and export |
 | `load-physics.js` / `load-panel.js` / `mass-model.js` / `motor-loads.js` | Load estimation and mass model |
 | `simple-model.js` / `simple-primitives.js` / `model-loader.js` | Primitive geometry and optional local CAD |
+| `public-hand.js` | Publicly authorized wrist-distal CAD (link_7) |
 | `mass-properties.json` | Aggregate link mass, COM, and inertia without surface geometry |
 | `private-model/README.txt` | Instructions for separately obtained CAD |
 | `motions.json` / `*.motion.json` | Original recordings and generated motions |
@@ -197,4 +198,4 @@ See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlie
 
 ## Licenses and data
 
-The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its motion data; detailed CAD is not distributed. Check the rights for each asset before publishing or redistributing it.
+The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its motion data; full-arm detailed CAD is not distributed; the authorized hand geometry is included. Check the rights for each asset before publishing or redistributing it.
