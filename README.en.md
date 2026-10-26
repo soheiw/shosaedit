@@ -263,3 +263,5 @@ See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlie
 The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its motion data; full-arm detailed CAD is not distributed; the authorized hand geometry is included. Check the rights for each asset before publishing or redistributing it.
 
 Additional recordings `marka` and `markb` use COM14 for the left arm and COM15 for the right arm, at 30 fps. Select them from the motion list. Run `node scripts/import-com-recordings.mjs` to rebuild them from the unchanged original CSVs.
+
+The shared right-wrist reference is provisionally 3025 counts (column 6), based on the supplied 2026-10-26 video and marka's nearly straight starting wrist. The former 1375 value came from Motion 1's first sample, not physical calibration. Original recordings are unchanged. Authored motions have column 6 shifted by +1650 to retain their intended joint trajectories. Physical agreement of the older Motion 1–3 recordings remains unverified.
