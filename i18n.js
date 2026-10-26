@@ -1,5 +1,6 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+'基準値・回転軸はモデル側の解釈設定です。CSVは変更しません。動画との照合は暫定的なものです。':'Reference values and axes interpret counts on the model side. CSV data is unchanged. Video alignment is provisional.',
 '左右それぞれの手形状':'Distinct right and left hand shapes',
 '左腕は右腕の鏡像':'Left arm mirrors right',
 '左腕CADを読み込めないため、左腕は右腕の鏡像で代用しています。':'Left CAD is unavailable; the left arm uses a mirrored-right fallback.',
