@@ -66,5 +66,13 @@
   {
     "id": "hug",
     "file": "hug.motion.json"
+  },
+  {
+    "id": "recorded-marka",
+    "file": "marka.motion.json"
+  },
+  {
+    "id": "recorded-markb",
+    "file": "markb.motion.json"
   }
 ]

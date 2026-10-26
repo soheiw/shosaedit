@@ -261,3 +261,5 @@ See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlie
 ## Licenses and data
 
 The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its motion data; full-arm detailed CAD is not distributed; the authorized hand geometry is included. Check the rights for each asset before publishing or redistributing it.
+
+Additional recordings `marka` and `markb` use COM14 for the left arm and COM15 for the right arm, at 30 fps. Select them from the motion list. Run `node scripts/import-com-recordings.mjs` to rebuild them from the unchanged original CSVs.
