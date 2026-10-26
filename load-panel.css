@@ -8,3 +8,7 @@
 
 .motor-verdict[data-state=warning],.motor-limit-table tr[data-state=warning]{color:#ffcf7d;background:#493b22}.motor-limit-table tr[data-state=invalid]{background:#51272b}
 .load-edit-verdict{margin:0;padding:6px 12px;font-size:11px;background:#25303e;color:#ccd6e4}.load-edit-verdict[data-state=over]{background:#51272b;color:#ffb4b4}.load-edit-verdict[data-state=warning]{background:#493b22;color:#ffcf7d}
+
+.motor-percent-field{display:flex;align-items:center;gap:4px;margin-bottom:4px;font-size:10px}.motor-percent-field input{flex:1}.motor-percent-field span{flex-shrink:0}
+
+.motor-nm-field{display:flex;align-items:center;gap:4px;font-size:9px}.motor-nm-field input{flex:1}.motor-nm-field span{flex-shrink:0}

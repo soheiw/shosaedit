@@ -1,5 +1,10 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+'許容 ストール比%／N·m':'Limit: stall % / N·m',
+'許容値はストール比%またはN·mで入力できます。両方は連動します。WARNINGの割合は、その許容値に対する割合です。':'Enter the limit as a stall percentage or N·m; the fields are linked. WARNING is a percentage of that configured limit.',
+'設定エラー：許容トルクとストール比は0より大きい値、WARNINGは0より大きく100以下で入力してください。':'Settings error: torque and stall percentage must be positive; WARNING must be greater than 0 and at most 100.',
+'ストール比で設定':'Set as stall percentage','ストール値未確定':'Stall torque unknown','0より大きい有効な値を入力してください':'Enter a finite positive value',
+
 'メーカーのストールトルクを入力（暫定）':'Fill manufacturer stall torques (provisional)',
 '仕様欄で選択した電圧の値を入力します。既定はメーカー推奨電圧。型番未確定の軸は変更しません。ストール値は連続運転の許容値ではありません。':'Uses the selected specification voltage, initially the manufacturer recommendation. Unknown models are unchanged. Stall values are not continuous operating limits.',
 'ストール値の入力は暫定比較用です。連続運転の許容値とは区別してください。':'Stall values are provisional comparison thresholds, distinct from continuous operating limits.',
@@ -204,7 +209,7 @@ const words={
 const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const pattern=new RegExp(Object.keys(words).sort((a,b)=>b.length-a.length).map(escape).join('|'),'g');
 export function english(text){
- return text.replace(/（許容値の([\d.]+)%超）/g,'(above $1% of limit)').replace(/（14軸中(\d+)軸）/g,'($1 of 14 axes)').replace(/未設定 (\d+)軸/g,'$1 axes without limits').replace(/超過([\d.]+)秒/g,'over limit for $1 s').replace(/^(右腕|左腕)を([\d.]+)秒遅らせる$/g,(_,arm,n)=>`${arm==='右腕'?'Right':'Left'} arm delayed by ${n} s`).replace(/第(\d+)列のみ（右ID (\d+) \/ 左ID (\d+)）/g,'Column $1 only (R ID $2 / L ID $3)')
+ return text.replace(/^(R\d|L\d) 許容ストール比 %$/g,'$1 limit as stall %').replace(/（許容値の([\d.]+)%超）/g,'(above $1% of limit)').replace(/（14軸中(\d+)軸）/g,'($1 of 14 axes)').replace(/未設定 (\d+)軸/g,'$1 axes without limits').replace(/超過([\d.]+)秒/g,'over limit for $1 s').replace(/^(右腕|左腕)を([\d.]+)秒遅らせる$/g,(_,arm,n)=>`${arm==='右腕'?'Right':'Left'} arm delayed by ${n} s`).replace(/第(\d+)列のみ（右ID (\d+) \/ 左ID (\d+)）/g,'Column $1 only (R ID $2 / L ID $3)')
  .replace(/再生時間 約([\d.]+)秒/g,'Playback duration ≈ $1 s')
  .replace(/前後各([\d.]+)秒 · 30fpsで前後各(\d+)コマ（端は利用できる範囲）/g,'±$1 s · $2 frames each side at 30 fps (truncated at endpoints)')
  .replace(/^リンク(\d+) 質量 kg$/g,'Link $1 mass kg')

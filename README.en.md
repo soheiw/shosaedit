@@ -119,6 +119,8 @@ Choose **Overlap blend** or **Insert transition** for each join. Overlap blends 
 
 **Fill manufacturer stall torques (provisional)** fills all 12 confirmed axes using the voltage selected in the specification table. Defaults: XM540 7.3 N·m at 12 V, XM430 4.1 N·m at 12 V, XC330 0.92 N·m at 11.1 V. Joint 5 remains unchanged because its model is unconfirmed. Provisional labels and voltages persist. Reapply after changing voltage. Stall values are comparison thresholds, not continuous operating limits.
 
+Enter each axis limit directly as **stall %** to calculate N·m using its saved voltage basis: 50% of 7.3 N·m is 3.65 N·m. Editing N·m updates the percentage too. Unknown models cannot use percentage entry. The separate WARNING percentage remains relative to the configured limit, not the stall torque.
+
 Set each motor's allowable torque in N·m in the 14-axis **Estimated loads** table. The warning percentage defaults to 80% and is editable. Exceeding a motor limit produces ERROR; exceeding the warning percentage produces WARNING. A stage banner reports the whole edited motion and recalculates after timing or smoothing edits. Saving, CSV/ZIP export and sequence saving recheck the exact output at 30 Hz and reject any configured motor overload. Warnings allow output. Unset limits remain unassessed and do not block output. Finger drives are excluded. These model estimates include mass and inertia; they do not establish hardware safety.
 
 ![Ordering, trimming and transitions between separate recordings](docs/images/sequence.en.jpg)

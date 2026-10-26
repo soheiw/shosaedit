@@ -51,3 +51,19 @@ const presetHost=new Node(),presetPanel=createMotorLoadPanel(presetHost,{motorMa
 assert.equal(createMotorLoadPanel(new Node(),{onSelect(){},onSeek(){}}).getLimits().L7,.92);
 assert.match(presetHost.querySelector('[data-motor-reference="R6"]').textContent,/11.1 V/);
 console.log('Stall preset: all confirmed axes, published voltage selection, unknown-model exclusion, no interpolation, UI fill and persisted provisional references passed.');
+
+const {limitFromStallPercent}=await import('../motor-loads.js');near(limitFromStallPercent(7.3,50),3.65);near(limitFromStallPercent(.92,80),.736);
+for(const value of [0,-1,NaN,Infinity])assert.throws(()=>limitFromStallPercent(7.3,value));
+const percentInput={dataset:{motorPercent:'R1'},value:'50',valueAsNumber:50,setCustomValidity(v){this.error=v;}};
+presetHost.listeners.input({target:percentInput});near(presetPanel.getLimits().R1,3.65);assert.equal(presetHost.querySelector('[data-motor-limit="R1"]').value,3.65);
+let percentRestored=createMotorLoadPanel(new Node(),{motorSpecs:specs,motorMapping:mapping,onSelect(){},onSeek(){}});near(percentRestored.getLimits().R1,3.65);
+percentInput.value='-1';percentInput.valueAsNumber=-1;presetHost.listeners.input({target:percentInput});assert.equal(presetPanel.hasInvalidSettings(),true);near(presetPanel.getLimits().R1,3.65);
+percentInput.value='80';percentInput.valueAsNumber=80;presetHost.listeners.input({target:percentInput});near(presetPanel.getLimits().R1,5.84);assert.equal(presetPanel.hasInvalidSettings(),false);
+const nmInput={dataset:{motorLimit:'R1'},value:'3.65',valueAsNumber:3.65,setCustomValidity(){}};presetHost.listeners.input({target:nmInput});assert.equal(presetHost.querySelector('[data-motor-percent="R1"]').value,'50');
+assert.equal(presetHost.querySelector('[data-motor-percent="R5"]').disabled,true);
+// Warning remains relative to the configured limit, rather than the manufacturer stall value.
+const relative=assessMotorLoads(results,{R1:limitFromStallPercent(7.3,60)},1,80);assert.equal(relative.motors[0].warning,true);assert.equal(relative.motors[0].over,false);
+// A non-default voltage basis survives a reload with the same Nm/percentage relationship.
+const voltageHost=new Node(),voltagePanel=createMotorLoadPanel(voltageHost,{motorSpecs:specs,motorMapping:mapping,getVoltages:()=>({'XC330-T288-T':12}),onSelect(){},onSeek(){}});voltageHost.querySelector('[data-motor="stall"]').onclick();voltageHost.listeners.input({target:{dataset:{motorPercent:'R6'},value:'50',valueAsNumber:50,setCustomValidity(){}}});near(voltagePanel.getLimits().R6,.5);
+const voltageRestoredHost=new Node();createMotorLoadPanel(voltageRestoredHost,{motorSpecs:specs,motorMapping:mapping,onSelect(){},onSeek(){}});assert.equal(voltageRestoredHost.querySelector('[data-motor-percent="R6"]').value,'50');assert.match(voltageRestoredHost.querySelector('[data-motor-reference="R6"]').textContent,/12 V/);
+console.log('Stall percentages: direct conversion, linked Nm fields, invalid-edit recovery, unknown axes, nested warning threshold and voltage-basis persistence passed.');

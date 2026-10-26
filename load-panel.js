@@ -1,4 +1,4 @@
-import {assessMotorLoads,createMotorLoadPanel} from './motor-loads.js?v=stall-1';
+import {assessMotorLoads,createMotorLoadPanel} from './motor-loads.js?v=stall-percent-1';
 import {analyzeMotion} from './load-physics.js';
 import {timeMap} from './speed-curve.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

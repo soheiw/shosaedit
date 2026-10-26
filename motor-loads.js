@@ -24,22 +24,27 @@ export function stallTorquePreset(specs,mapping,voltages={}){
   if(point&&finite(point.stallTorqueNm)&&point.stallTorqueNm>0)entries[side+j]={value:point.stallTorqueNm,voltage,model:model.id};
  }return entries;
 }
+export function limitFromStallPercent(stall,percent){
+ if(!finite(stall)||stall<=0||!finite(percent)||percent<=0)throw new RangeError('Positive stall torque and percentage required');
+ const limit=stall*percent/100;if(!finite(limit)||limit<=0)throw new RangeError('Finite positive limit required');return limit;
+}
 export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,motorSpecs,getVoltages=()=>({}),onLimitsChange=()=>{}}){
  let limits={};try{const saved=JSON.parse(localStorage.getItem(key));for(const side of SIDES)for(let j=1;j<=7;j++){const id=side+j;if(finite(saved?.[id])&&saved[id]>0)limits[id]=saved[id];}}catch{}
  let warningPercent=80;try{const saved=JSON.parse(localStorage.getItem(warningKey));if(validWarningPercent(saved))warningPercent=saved;}catch{}
  let references={};try{const saved=JSON.parse(localStorage.getItem(key+'-references'));for(const [id,r] of Object.entries(saved??{}))if(r&&r.value===limits[id]&&finite(r.voltage)&&typeof r.model==='string')references[id]=r;}catch{}
  const invalid=new Set();
  let results=null,time=0,report;
- host.innerHTML=`<h3>モーター別の上限比較</h3><p class="load-help">R1〜R7／L1〜L7は肩からの関節番号です。実機IDとは未照合。指駆動は計算対象外です。</p><button type="button" data-motor="stall">メーカーのストールトルクを入力（暫定）</button><p class="load-help">仕様欄で選択した電圧の値を入力します。既定はメーカー推奨電圧。型番未確定の軸は変更しません。ストール値は連続運転の許容値ではありません。</p><label class="motor-warning-setting">WARNING表示のしきい値（許容値の%） <input aria-label="WARNING表示のしきい値（%）" data-motor-warning type="number" min="0" max="100" step="any" value="${warningPercent}"></label><p data-motor="settings-error" class="motor-verdict" role="alert" hidden></p><p data-motor="verdict" class="motor-verdict" role="status"></p><p data-motor="now" class="load-help" aria-live="off"></p><button type="button" data-motor="worst">最大比の時刻へ</button><details open><summary>左右14軸の一覧・許容値</summary><p class="load-help">各軸の重力＋動作トルクの絶対値。現在値は修正後、最大値は元 → 修正です。各許容値は運用条件に合わせてN·mで入力してください。ストール値の入力は暫定比較用です。連続運転の許容値とは区別してください。</p><table class="motor-limit-table"><thead><tr><th>モーター</th><th>現在／最大 N·m</th><th>許容 N·m／最大比</th></tr></thead><tbody>${SIDES.flatMap(side=>Array.from({length:7},(_,j)=>{const id=side+(j+1),model=motorMapping?.confirmed?.[String(j+1)]??'型番未確定';return `<tr data-motor-row="${id}"><th><button type="button" data-motor-select="${id}" title="${model}">${id}</button><small data-motor-state="${id}"></small></th><td><b data-motor-current="${id}">—</b><small data-motor-peak="${id}">—</small><small data-motor-extra="${id}"></small></td><td><input aria-label="${id} 許容トルク N·m" type="number" min="0" step="any" placeholder="未設定" data-motor-limit="${id}" value="${limits[id]??''}"><small data-motor-ratio="${id}">—</small><small data-motor-reference="${id}"></small></td></tr>`;})).join('')}</tbody></table></details><p class="load-help">許容値は両腕それぞれに保存し、すべてのMotionで共通です。1軸でも超過すれば全体を「超過あり」と表示します。これは推定トルクの比較で、実機の電流・温度・停止判定を再現したものではありません。</p>`;
+ host.innerHTML=`<h3>モーター別の上限比較</h3><p class="load-help">R1〜R7／L1〜L7は肩からの関節番号です。実機IDとは未照合。指駆動は計算対象外です。</p><button type="button" data-motor="stall">メーカーのストールトルクを入力（暫定）</button><p class="load-help">仕様欄で選択した電圧の値を入力します。既定はメーカー推奨電圧。型番未確定の軸は変更しません。ストール値は連続運転の許容値ではありません。</p><label class="motor-warning-setting">WARNING表示のしきい値（許容値の%） <input aria-label="WARNING表示のしきい値（%）" data-motor-warning type="number" min="0" max="100" step="any" value="${warningPercent}"></label><p data-motor="settings-error" class="motor-verdict" role="alert" hidden></p><p data-motor="verdict" class="motor-verdict" role="status"></p><p data-motor="now" class="load-help" aria-live="off"></p><button type="button" data-motor="worst">最大比の時刻へ</button><details open><summary>左右14軸の一覧・許容値</summary><p class="load-help">各軸の重力＋動作トルクの絶対値。現在値は修正後、最大値は元 → 修正です。許容値はストール比%またはN·mで入力できます。両方は連動します。WARNINGの割合は、その許容値に対する割合です。ストール値の入力は暫定比較用です。連続運転の許容値とは区別してください。</p><table class="motor-limit-table"><thead><tr><th>モーター</th><th>現在／最大 N·m</th><th>許容 ストール比%／N·m</th></tr></thead><tbody>${SIDES.flatMap(side=>Array.from({length:7},(_,j)=>{const id=side+(j+1),model=motorMapping?.confirmed?.[String(j+1)]??'型番未確定';return `<tr data-motor-row="${id}"><th><button type="button" data-motor-select="${id}" title="${model}">${id}</button><small data-motor-state="${id}"></small></th><td><b data-motor-current="${id}">—</b><small data-motor-peak="${id}">—</small><small data-motor-extra="${id}"></small></td><td><label class="motor-percent-field"><input aria-label="${id} 許容ストール比 %" type="number" min="0" step="any" placeholder="未確定" data-motor-percent="${id}"><span>%</span></label><label class="motor-nm-field"><input aria-label="${id} 許容トルク N·m" type="number" min="0" step="any" placeholder="未設定" data-motor-limit="${id}" value="${limits[id]??''}"><span>N·m</span></label><small data-motor-ratio="${id}">—</small><small data-motor-reference="${id}"></small></td></tr>`;})).join('')}</tbody></table></details><p class="load-help">許容値は両腕それぞれに保存し、すべてのMotionで共通です。1軸でも超過すれば全体を「超過あり」と表示します。これは推定トルクの比較で、実機の電流・温度・停止判定を再現したものではありません。</p>`;
  const $=name=>host.querySelector(`[data-motor="${name}"]`);
+ function basis(id){const r=references[id];if(r)return {...r,value:r.stallTorqueNm??r.value};return stallTorquePreset(motorSpecs,motorMapping,getVoltages())[id];}
  const text=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
- function update(recalculate=true){
+ function update(recalculate=true,editing=null){
   if(recalculate)report=assessMotorLoads(results,limits,time,warningPercent);
   else{for(const m of report.motors)if(m.available){m.current=Math.abs(torqueAt(results[m.side].edited,m.j,time));m.currentRatio=m.limit?m.current/m.limit:null;m.currentOver=m.limit!==null&&m.current>m.limit;m.currentWarning=m.limit!==null&&m.current<=m.limit&&m.current/m.limit>warningPercent/100;}report.currentOver=report.motors.filter(m=>m.currentOver);report.currentWarnings=report.motors.filter(m=>m.currentWarning);}
   const ready=report.motors.every(m=>m.available);
   if(recalculate){
    $('verdict').dataset.state=invalid.size?'invalid':ready?report.status:'pending';
-   $('settings-error').hidden=!invalid.size;text($('settings-error'),invalid.size?'設定エラー：許容トルクは0より大きい値、WARNINGは0より大きく100以下で入力してください。':'');
+   $('settings-error').hidden=!invalid.size;text($('settings-error'),invalid.size?'設定エラー：許容トルクとストール比は0より大きい値、WARNINGは0より大きく100以下で入力してください。':'');
    let verdict=!ready?'再計算待ち':report.over.length?`ERROR · 超過あり：${report.over.map(m=>m.id).join('、')}（14軸中${report.over.length}軸）`:report.warnings.length?`WARNING · ${report.warnings.map(m=>m.id).join('、')}（許容値の${warningPercent}%超）`:report.missing.length?`未判定：許容値未設定 ${report.missing.length} / 14軸`:'対象14軸は設定値内（推定）';
    if(ready&&report.worst){const w=report.worst;verdict+=` · 最大比 ${w.id} ${(w.ratio*100).toFixed(1)}% · ${w.peakTime.toFixed(2)}秒`;}
    if(ready&&(report.over.length||report.warnings.length)&&report.missing.length)verdict+=` · 未設定 ${report.missing.length}軸`;
@@ -48,7 +53,15 @@ export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,motorSpe
   const configured=report.motors.filter(m=>m.available&&m.limit!==null).length;
   text($('now'),!ready?'—':!configured?'現在値を表示中（許容値未設定）':report.currentOver.length?`現在の超過：${report.currentOver.map(m=>m.id).join('、')}`:report.currentWarnings.length?`現在のWARNING：${report.currentWarnings.map(m=>m.id).join('、')}`:'現在の超過なし（設定済みの軸のみ）');
   for(const m of report.motors){
-   if(recalculate){const r=references[m.id];text(host.querySelector(`[data-motor-reference="${m.id}"]`),r?`暫定ストール値 · ${r.voltage} V`:'');}
+   if(recalculate){
+    const r=references[m.id],b=basis(m.id),percentInput=host.querySelector(`[data-motor-percent="${m.id}"]`),nmInput=host.querySelector(`[data-motor-limit="${m.id}"]`);
+    percentInput.disabled=!b;
+    if(!invalid.has(m.id)){
+     if(percentInput!==editing)percentInput.value=b&&limits[m.id]?String(Number((limits[m.id]/b.value*100).toFixed(6))):'';
+     if(nmInput!==editing)nmInput.value=limits[m.id]??'';
+    }
+    text(host.querySelector(`[data-motor-reference="${m.id}"]`),b?`${r?.kind==='ratio'?'ストール比で設定':'暫定ストール値'} · ${b.value} N·m / ${b.voltage} V`:'ストール値未確定');
+   }
    text(host.querySelector(`[data-motor-current="${m.id}"]`),m.available?fmt(m.current):'—');
    if(recalculate){
     host.querySelector(`[data-motor-row="${m.id}"]`).dataset.state=!m.available?'pending':m.over?'over':m.warning?'warning':m.limit?'within':'incomplete';
@@ -60,19 +73,29 @@ export function createMotorLoadPanel(host,{onSelect,onSeek,motorMapping,motorSpe
   }
  }
  host.addEventListener('input',e=>{
-  const input=e.target,id=input.dataset.motorLimit,isWarning=Object.hasOwn(input.dataset,'motorWarning');if(!id&&!isWarning)return;
-  const raw=input.value,v=input.valueAsNumber,field=isWarning?'warning':id;
-  // An empty torque limit is deliberately unset; malformed/invalid entries retain the last valid value.
-  const valid=isWarning?validWarningPercent(v):(raw===''&&!input.validity?.badInput)||finite(v)&&v>0;
-  if(!valid){invalid.add(field);input.setCustomValidity(isWarning?'WARNINGは0より大きく100以下で入力してください':'0より大きい許容トルクを入力してください');}
-  else{invalid.delete(field);input.setCustomValidity('');if(!isWarning){delete references[id];try{localStorage.setItem(key+'-references',JSON.stringify(references));}catch{}}if(isWarning)warningPercent=v;else if(raw==='')delete limits[id];else limits[id]=v;try{localStorage.setItem(isWarning?warningKey:key,JSON.stringify(isWarning?warningPercent:limits));}catch{}}
-  input.dataset.invalid=String(!valid);update();onLimitsChange();
+  const input=e.target,isPercent=Object.hasOwn(input.dataset,'motorPercent'),id=input.dataset.motorLimit??input.dataset.motorPercent,isWarning=Object.hasOwn(input.dataset,'motorWarning');if(!id&&!isWarning)return;
+  const raw=input.value,v=input.valueAsNumber,field=isWarning?'warning':id,b=isPercent?basis(id):null;
+  const empty=raw===''&&!input.validity?.badInput;
+  const valid=isWarning?validWarningPercent(v):isPercent?!!b&&(empty||finite(v)&&v>0&&finite(b.value*v/100)&&b.value*v/100>0):empty||finite(v)&&v>0;
+  if(!valid){invalid.add(field);input.setCustomValidity(isWarning?'WARNINGは0より大きく100以下で入力してください':'0より大きい有効な値を入力してください');}
+  else{
+   invalid.delete(field);input.setCustomValidity('');
+   if(isWarning)warningPercent=v;
+   else{
+    for(const selector of ['data-motor-limit','data-motor-percent']){const paired=host.querySelector(`[${selector}="${id}"]`);paired.setCustomValidity('');paired.dataset.invalid='false';}
+    delete references[id];
+    if(empty)delete limits[id];else if(isPercent){limits[id]=limitFromStallPercent(b.value,v);references[id]={...b,value:limits[id],stallTorqueNm:b.value,percent:v,kind:'ratio'};}else limits[id]=v;
+    try{localStorage.setItem(key+'-references',JSON.stringify(references));}catch{}
+   }
+   try{localStorage.setItem(isWarning?warningKey:key,JSON.stringify(isWarning?warningPercent:limits));}catch{}
+  }
+  input.dataset.invalid=String(!valid);update(true,input);onLimitsChange();
  });
  host.addEventListener('click',e=>{const target=e.target.closest('[data-motor-select]');if(target){const id=target.dataset.motorSelect;onSelect(id[0],Number(id.slice(1))-1);}});
  $('stall').disabled=!motorSpecs?.models?.length;
  $('stall').onclick=()=>{
   const preset=stallTorquePreset(motorSpecs,motorMapping,getVoltages());
-  for(const [id,r] of Object.entries(preset)){limits[id]=r.value;references[id]=r;invalid.delete(id);const input=host.querySelector(`[data-motor-limit="${id}"]`);input.value=r.value;input.setCustomValidity('');input.dataset.invalid='false';}
+  for(const [id,r] of Object.entries(preset)){limits[id]=r.value;references[id]=r;invalid.delete(id);const input=host.querySelector(`[data-motor-limit="${id}"]`);input.value=r.value;input.setCustomValidity('');input.dataset.invalid='false';const percentInput=host.querySelector(`[data-motor-percent="${id}"]`);percentInput.setCustomValidity('');percentInput.dataset.invalid='false';}
   try{localStorage.setItem(key,JSON.stringify(limits));localStorage.setItem(key+'-references',JSON.stringify(references));}catch{}
   update();onLimitsChange();
  };
