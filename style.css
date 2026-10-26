@@ -38,3 +38,18 @@ header{padding:10px 16px 8px;gap:8px}h1{font-size:23px;margin:0}.eyebrow{font-si
 .load-live{position:absolute;left:0;right:0;bottom:30px;display:grid;grid-template-columns:1fr 1fr;z-index:2;pointer-events:none;text-align:center;gap:2px}.load-live>span{display:flex;flex-direction:column;align-items:center}.load-live small{background:#151b24c9;color:#c5b789;font-size:9px;padding:1px 4px}.load-live b{background:#151b24c9;color:#e8edf5;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;padding:1px 5px}.load-live b:empty{display:none}@media(max-width:760px){.load-live{bottom:4px}.load-live small{font-size:7px}.load-live b{font-size:10px}}
 
 .named-motion-save input{min-width:0;flex:1;width:100%;font:inherit;color:var(--text);background:#242b36;border:1px solid #404958;border-radius:4px;padding:5px 8px}.named-motion-save button{font-size:11px}
+
+.sequence-actions{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}
+.sequence-actions button{font-size:11px;padding:5px 8px}
+.sequence-list{display:flex;flex-direction:column;gap:7px}
+.sequence-clip{padding:9px;background:#141921;border:1px solid var(--line);border-radius:7px}
+.sequence-clip strong{font-size:12px;overflow-wrap:anywhere}
+.sequence-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.sequence-fields label{font-size:10px;min-width:0}
+.sequence-fields input{display:block;width:100%!important;min-width:0}
+#sequence-editor>label{display:block;margin:6px 0}
+#sequence-editor>label select,#sequence-editor>label input{display:block;width:100%;max-width:none}
+#sequence-editor input[type=text]{font:inherit;padding:6px;color:var(--text);background:#242b36;border:1px solid #404958;border-radius:6px}
+.sequence-total{color:var(--accent);font-size:12px}
+.sequence-error{color:#f4a5a5}
+button:disabled{opacity:.45;cursor:default}

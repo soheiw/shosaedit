@@ -96,6 +96,22 @@ Edits are baked into the saved samples. On first selection, the saved motion ope
 
 **The browser's motion list and the downloaded file are separate.** Clearing site data removes the saved list. A different browser or URL port uses a different storage area. Keep the JSON file for backup or transfer, and reload it with **Open motion file**.
 
+## Joining separate recordings
+
+Use **Motion sequence** to arrange multiple recordings into one motion.
+
+1. Import each Motion JSON or paired right/left CSV using **Open motion file**. Original recordings, generated motions and saved motions are also available.
+2. Select a source and click **Add original** for raw data, or **Add current edited motion** to bake the current speed, delay and smoothing into a copied segment.
+3. Use ↑ / ↓ to reorder. Set start and exclusive end times in seconds. **Transition to next** inserts 0–10 seconds between clips; zero makes a direct cut. No transition follows the last clip.
+4. Click **Preview sequence**. **Before join (original)** seeks about 0.5 seconds before a join on the original sequence clock. Independent speed or delay edits may place edited-arm joins at other elapsed times.
+5. Enter a name and click **Save sequence** to add it to the motion list and download a Motion JSON. Existing right/left CSV and ZIP exports work on the result.
+
+The arrangement, trims and copied source data are saved as a draft in this browser and restored after reload. Drafts do not carry across browsers or ports, and clearing site data removes them. Exported JSON contains the flattened sequence; keep original capture files separately.
+
+Sources must share motor columns and reference poses. Calibration alignment, IK and collision avoidance are not automatic. Joins interpolate every motor channel with quintic smoothstep; recorded boundary velocities are not necessarily continuous, so inspect and adjust trims and transition time in the preview. Original recordings remain unchanged. Limits: 50 clips and 10,000 output frames (about 333 seconds).
+
+![Ordering, trimming and transitions between separate recordings](docs/images/sequence.en.jpg)
+
 ## Import files and export CSVs
 
 **Open motion file** accepts either of the following:
@@ -185,6 +201,7 @@ Checks cover independent playback clocks, delay, CSV sampling, LINK switching an
 | --- | --- |
 | `app.js` / `index.html` / `style.css` | Interface and playback |
 | `speed-curve.js` / `arm-delay.js` / `smoothing.js` | Speed, delay, and smoothing |
+| `motion-sequence.js` / `sequence-editor.js` | Clip trimming, joins and sequence drafts |
 | `saved-motions.js` / `motion-files.js` / `export-motion.js` | Named saves, import, and export |
 | `load-physics.js` / `load-panel.js` / `mass-model.js` / `motor-loads.js` | Load estimation and mass model |
 | `simple-model.js` / `simple-primitives.js` / `model-loader.js` | Primitive geometry and optional local CAD |

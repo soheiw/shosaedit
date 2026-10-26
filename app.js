@@ -1,3 +1,4 @@
+import {createSequenceEditor} from './sequence-editor.js?v=sequence-1';
 import {loadDisplayModel,loadMassProperties} from './model-loader.js?v=public-hand-20261026';
 import {listSavedMotions,storeSavedMotion,uniqueMotionName} from './saved-motions.js';
 import {readMotionFiles,validateRecording} from './motion-files.js';
@@ -17,6 +18,7 @@ const pivots=[[-13.0614,-559.9965,0],[-13.0614,-559.9965,-14],[-18.65,-559.9965,
 const parents=[-1,0,1,2,3,4,5,6];
 const axes=[[0,1,0],[0,0,1],[1,0,0],[0,1,0],[-1,0,0],[0,1,0],[0,0,1],[1,0,0]];
 const state={solo:-1,clip:'1',frame:0,playing:false,side:'both',chartSide:'R',elapsed:0,loop:true,rigs:{},meshes:[],selected:null,frameFloat:0,originalFrameFloat:0};
+let sequenceEditor,sequencePreviewId,sequenceActiveId;
 let initialGeometry,modelRevision=0,motions,model,config,renderer,scene,camera,controls,last=0,chartReady=false,speedEditor,delayEditor,timing,smoothing,loadPanel,massShapes,motorSpecs,motorMapping;
 const savedKey='augmented-arms-fusion-links-v2';
 const modelModeKey='shosaedit-model-mode';
@@ -56,6 +58,7 @@ function updateReadout(){
  const row=rowFor(state.chartSide);row.forEach((v,i)=>{const el=$('value-'+i);if(el)el.textContent=Math.round(v);});drawChart();loadPanel?.updateCursor({originalFrame:state.originalFrameFloat,editedTime:state.elapsed});
 }
 function setClip(clip){
+ sequenceEditor?.markInactive();
  state.clip=clip;$('save-motion-name').value=(motions.metadata?.[clip]?.name||'Motion '+clip)+'（編集）';state.playing=false;$('play').textContent='再生';document.querySelectorAll('[data-clip]').forEach(b=>b.classList.toggle('selected',b.dataset.clip===clip));
  $('custom-motion').value=motions.metadata?.[clip]?clip:'';$('clip-info').textContent=motions.metadata?.[clip]?.description||(clip==='3'?'左右の腕が動く記録':'主に右腕が動く記録');
  smoothing?.setClip(clip);speedEditor.setClip(clip,frameCount()/30);delayEditor.setClip(clip);rebuildTiming();setTime(0);
@@ -121,7 +124,30 @@ function exportMotion(side){
  $('export-status').textContent=`書き出しました：${summary.join(' ／ ')}`;
  }catch(e){$('export-status').textContent='書き出せません：'+e.message;}
 }
-function registerMotion(id,motion){motions.clips[id]={R:motion.R,L:motion.L};motions.metadata??={};motions.metadata[id]={name:motion.name,description:motion.description,exportStem:motion.exportStem,previewFrame:motion.previewFrame,bakedEdits:motion.bakedEdits};const option=document.createElement('option');option.value=id;option.textContent=motion.name;if(id.startsWith('saved-'))option.dataset.noTranslate='';$('custom-motion').appendChild(option);}
+function registerMotion(id,motion){motions.clips[id]={R:motion.R,L:motion.L};motions.metadata??={};motions.metadata[id]={name:motion.name,description:motion.description,exportStem:motion.exportStem,previewFrame:motion.previewFrame,bakedEdits:motion.bakedEdits};let option=[...$('custom-motion').options].find(o=>o.value===id);if(!option){option=document.createElement('option');option.value=id;$('custom-motion').appendChild(option);}option.textContent=motion.name;if(id.startsWith('saved-')||id.startsWith('sequence-'))option.dataset.noTranslate='';sequenceEditor?.refreshSources();}
+function editedSequenceSource(){
+ if(Math.ceil(timing.editedDuration*30-1e-9)>10000)throw Error('保存できる動きは約333秒までです。速度設定を見直してください。');
+ const name=(motions.metadata?.[state.clip]?.name||'Motion '+state.clip)+'（編集）',clip={format:'augmented-arms-motion',version:1,fps:30,name,bakedEdits:true};
+ for(const side of ['R','L'])clip[side]=exportRows(smoothing.rows(state.clip,side),frameCount(),timing.curves[side],30,{delaySeconds:timing.delays[side],durationSeconds:timing.editedDuration});
+ return {name,clip};
+}
+async function initializeSequenceEditor(){
+ sequenceEditor=await createSequenceEditor($('sequence-editor'),{
+  getSources:()=>Object.entries(motions.clips).filter(([id])=>!id.startsWith('sequence-preview-')).map(([id,clip])=>({id,clip,name:motions.metadata?.[id]?.name||'Motion '+id})),
+  getEdited:editedSequenceSource,
+  onPreview(recording){
+   if(sequencePreviewId){delete motions.clips[sequencePreviewId];delete motions.metadata[sequencePreviewId];[...$('custom-motion').options].find(o=>o.value===sequencePreviewId)?.remove();}
+   const id='sequence-preview-'+crypto.randomUUID();registerMotion(id,validateRecording(recording));sequencePreviewId=id;sequenceActiveId=id;setClip(id);
+  },
+  async onSave(recording){
+   recording.name=uniqueMotionName(recording.name,Object.entries(motions.metadata??{}).filter(([id])=>!id.startsWith('sequence-preview-')).map(([,m])=>m.name));
+   recording.exportStem='Sequence_'+Date.now();const id='saved-'+crypto.randomUUID();
+   await storeSavedMotion({id,createdAt:Date.now(),recording});registerMotion(id,validateRecording(recording));sequenceActiveId=id;setClip(id);
+   downloadFile(recording.name.replace(/[\\/:*?"<>|\x00-\x1f]/g,'_')+'.motion.json',JSON.stringify(recording),'application/json');
+  },
+  onSeek(seconds){if(sequenceActiveId&&motions.clips[sequenceActiveId]){state.playing=false;$('play').textContent='再生';setTime(seconds);}}
+ });
+}
 async function saveNamedMotion(){
  const button=$('save-motion'),status=$('save-motion-status');if(button.disabled)return;button.disabled=true;
  try{
@@ -154,4 +180,4 @@ if(!config.rightElbowDirectionV1){const j=config.R.joints[4];if(j.motor===3&&j.g
 if(!config.rightShoulderDirectionV1){const j=config.R.joints[2];if(j.motor===1&&j.gain===1&&j.axis.join(',')==='1,0,0')j.axis=[-1,0,0];config.rightShoulderDirectionV1=true;persist();}
 const bin=initialGeometry.bin;initScene();makeRigs(bin);speedEditor=createSpeedEditor($('speed-editor'),timingChanged);delayEditor=createArmDelayEditor($('delay-editor'),timingChanged);smoothing=createSmoothing($('smoothing-editor'),motions,()=>{updateReadout();loadPanel?.invalidate();});smoothing.setClip(state.clip);const library=await load('generated-motions.json');const loadedLibrary=await Promise.all(library.map(async entry=>({id:entry.id,motion:validateRecording(await load(entry.file))})));for(const entry of loadedLibrary)registerMotion(entry.id,entry.motion);
 try{for(const entry of await listSavedMotions()){try{registerMotion(entry.id,validateRecording(entry.recording));}catch{}}}catch{$('save-motion-status').textContent='保存済みの動きを読み込めませんでした。再読み込みしてください。';}
-bind();buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}
+bind();buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');await initializeSequenceEditor();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}
