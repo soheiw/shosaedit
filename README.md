@@ -116,6 +116,8 @@ TouchDesignerでは [OSC In CHOP](https://derivative.ca/UserGuide/OSC_In_CHOP) �
 
 各アドレスは単一の数値を持ちます。OSC bundleは左右1パケットずつ・各1400バイト以下。速度・時間差・平滑化を適用した両腕を送ります。表示用のCAD姿勢・入力の絞り込みは適用しません。UDP送信はモーター制御ではなく、負荷ERROR中もプレビュー同様に送信します。実機へ接続する場合の安全判定は別途必要です。
 
+元の左右CSVも `motion-data/original-csv/` に保存しています（Motion 1〜3、計6ファイル）。元ファイルのバイト列を変更せず収録しています。
+
 配布モーションはすべて `motion-data/` に収録しています。元のMotion 1〜3は `motions.json`、作成済み動作は `*.motion.json`、一覧は `generated-motions.json` です。
 
 ## 複数の動作を連結する

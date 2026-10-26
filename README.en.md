@@ -124,6 +124,8 @@ Each address has one numeric argument. Frames use two OSC bundles (one per arm),
 
 Relay checks: `python3 tests/test_osc_bridge.py` validates OSC contents, loopback UDP reception and same-origin HTTP restrictions.
 
+The six original CSV files for Motion 1–3 are preserved byte-for-byte in `motion-data/original-csv/`.
+
 All bundled motion data lives in `motion-data/`: `motions.json` contains original Motion 1–3, `*.motion.json` contains generated motions, and `generated-motions.json` is the catalog.
 
 ## Joining separate recordings
