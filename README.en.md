@@ -269,3 +269,10 @@ The shared right-wrist reference is provisionally 3025 counts (column 6), based 
 Joint calibration synchronizes between tabs in the same browser. Changes in another tab and stored settings on return are applied without changing playback time or camera. Reload tabs still running an older app version once. CSV files contain counts only; matching joint calibration is required for matching displays.
 
 `markc` uses a provisional model reference aligned to the supplied video, stored separately in `recording-references.json`. Reimported CSVs with matching starting rows use that same reference. This interpretation change does not modify original CSVs or distributed motion counts, column order, or timing. Left shoulder lateral and wrist joint 7 axes are adjusted on the model side. Full axial orientation is not identifiable from the starting video pose alone. This does not establish hardware agreement for all earlier authored motions.
+### Authored motion reference (2026-10-26)
+
+All 17 bundled authored motions use the video-aligned markc reference and corrected left joint 1/7 axes. Frame counts and 30fps timing are preserved. Original Motion 1–3, marka/b/c and recorded CSV files are unchanged.
+
+Motion JSON retains `referenceProfile` through smoothing and named saves. Headerless CSV cannot carry it. If an edited CSV reloads with the wrong pose, select markc under the joint calibration panel's Model reference selector. Previously saved/downloaded authored files are not automatically replaced.
+
+Three back-of-hand-up wave variants have an explicit right joint 3 endpoint correction of at most 2 ticks (0.176°), keeping counts within 0–4095. This numeric range does not establish physical joint limits or safety. Hardware calibration and collisions remain unverified.

@@ -18,3 +18,8 @@ assert.equal(interpretedConfiguration(migrated,recording,profiles).R.zero[5],201
 assert.equal(JSON.stringify(recording),unchanged,'CSV-equivalent counts must remain immutable');
 assert.throws(()=>setRecordingReference(migrated,recording,profiles,'R',[1,2]));
 console.log('PASS record-specific origins, immutable counts/time, CSV reimport matching, user overrides, isolated common reference and left-wrist axis migration');
+
+const explicit=structuredClone(recording);explicit.R[0][0]+=400;explicit.referenceProfile='markc-video-reference';
+assert.equal(matchingReferenceProfile(explicit,profiles).id,'markc-video-reference');
+explicit.referenceProfile='common';assert.equal(matchingReferenceProfile(explicit,profiles),null);
+explicit.referenceProfile='unknown';assert.equal(matchingReferenceProfile(explicit,profiles),null);

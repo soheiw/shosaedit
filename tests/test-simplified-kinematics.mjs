@@ -19,16 +19,32 @@ const root=new URL('../',import.meta.url),read=name=>fs.readFileSync(new URL(nam
 const motions=JSON.parse(read('motion-data/motions.json'));
 const clips=[...Object.entries(motions.clips),...JSON.parse(read('motion-data/generated-motions.json')).map(e=>[e.id,JSON.parse(read('motion-data/'+e.file))])];
 assert.equal(clips.length,23,'3 original, 17 authored and 3 additional recordings must be covered');
-const legacyClips=clips.filter(([id])=>!id.startsWith('recorded-')).map(([id,c])=>[id,{...c,R:c.R.map(row=>row.map((v,i)=>v-(c.generation?.rightWristReference===3025&&i===5?1650:0)))}]);
-const hash=value=>createHash('sha256').update(value).digest('hex');
-assert.equal(hash(JSON.stringify(legacyClips.map(([id,c])=>[id,c.R,c.L]))),'47df1282f1718586f272f74606669980fea575248c7feb542aaef23c6b5acb37','recorded/generated joint data changed during geometry replacement');
-
 const P=[[-13.0614,-559.9965,0],[-13.0614,-559.9965,-14],[-18.65,-559.9965,36.503],[-13.2884,-480,36.503],[-15.98,-357.8448,36.5615],[-13.207,-244.6,1.1525],[-2.2069,-126.1417,2.65],[-26.2069,-126.1417,1.1525]];
 const A={R:[[0,1,0],[0,0,1],[-1,0,0],[0,1,0],[-1,0,0],[0,1,0],[0,0,1],[1,0,0]],L:[[0,1,0],[0,0,-1],[1,0,0],[0,1,0],[1,0,0],[0,1,0],[0,0,1],[-1,0,0]]};
 const Z={R:[2535,2916,2034,2974,3611,3025,1890,3492,396],L:[2035,1112,2258,1166,1895,2003,2164,3213]};
+const C={R:[2541,2947,1022,1892,1524,2017,1814,3891,405],L:[2034,1115,2079,1168,1905,1987,2268,2899]};
+const legacyZero={R:[2535,2916,2034,2974,3611,1375,1890,3492,396],L:[2035,1112,2258,1166,1895,2003,2164,3213]};
+const converted=clip=>clip.generation?.modelInterpretationVersion==='markc-authored-v1';
+// Frozen exception intervals measured from the pre-conversion data. Reverse the
+// documented 1/2-tick single-turn endpoint saturation, then retain the original
+// whole-library hashes. An arbitrary changed zero count must not pass this test.
+const endpointIntervals={
+ 'bird-flap-back-up':[[40,40,1],[41,258,2],[259,259,1]],
+ 'hand-waves-back-up':[[46,46,1],[47,312,2],[313,313,1]],
+ 'alternating-waves-back-up':[[46,46,1],[47,312,2],[313,313,1]]
+};
+const endpointAdjustment=(id,frame)=>endpointIntervals[id]?.find(([first,last])=>frame>=first&&frame<=last)?.[2]??0;
+const legacyClips=clips.filter(([id])=>!id.startsWith('recorded-')).map(([id,c])=>[id,{...c,...Object.fromEntries(['R','L'].map(side=>[side,c[side].map((row,frame)=>row.map((v,i)=>{
+ if(!converted(c))return v-(side==='R'&&c.generation?.rightWristReference===3025&&i===5?1650:0);
+ const adjustment=side==='R'&&i===2?endpointAdjustment(id,frame):0;
+ if(adjustment)assert.equal(v,0,`${id}:${frame} documented endpoint clamp`);
+ return (v-C[side][i])*(side==='L'&&[0,6].includes(i)?-1:1)+legacyZero[side][i]-adjustment;
+}))]))}]);
+const hash=value=>createHash('sha256').update(value).digest('hex');
+assert.equal(hash(JSON.stringify(legacyClips.map(([id,c])=>[id,c.R,c.L]))),'47df1282f1718586f272f74606669980fea575248c7feb542aaef23c6b5acb37','legacy data changed beyond the explicit reference/sign conversion and frozen endpoint exception');
+assert.equal(clips.filter(([,c])=>converted(c)).length,17,'all authored motions use the accepted markc interpretation');
 const recordingReferences=JSON.parse(read('recording-references.json'));
 for(const [id,c] of clips)motions.clips[id]=c;
-const C={R:[2541,2947,1022,1892,1524,2017,1814,3891,405],L:[2034,1115,2079,1168,1905,1987,2268,2899]};
 const source=read('app.js');
 const declaration=name=>{const match=source.match(new RegExp(`const ${name}=([^;]+);`));assert.ok(match,`app ${name} declaration`);return `const ${name}=${match[1]};`;};
 // Extract named top-level functions without executing the browser bootstrap.
@@ -61,10 +77,41 @@ function reference(side,row,config=null){
  }
  return chain;
 }
+// Compare all converted frames against the frozen legacy joint basis. These
+// expected axes/references do not call the production interpretation resolver.
+const legacyAxes={R:A.R,L:[[0,1,0],[0,0,1],[1,0,0],[0,1,0],[1,0,0],[0,1,0],[0,0,1],[1,0,0]]};
+let conversionFrames=0,clippedFrames=0,maxEndpointPositionMm=0,maxEndpointBasisAngle=0;
+for(const [id,clip]of clips.filter(([,c])=>converted(c))){
+ assert.equal(clip.referenceProfile,'markc-video-reference');
+ assert.equal(clip.generation.singleTurnEndpointAdjustmentTicks,endpointIntervals[id]?2:0);
+ const legacy=legacyClips.find(([key])=>key===id)[1];
+ for(const side of ['R','L']){
+  assert.deepEqual(clip[side][0],C[side]);assert.deepEqual(clip[side].at(-1),C[side]);
+  assert.ok(clip[side].every(r=>r.every(v=>Number.isInteger(v)&&v>=0&&v<=4095)));
+  for(let frame=0;frame<clip[side].length;frame++){
+   const before=legacy[side][frame],after=clip[side][frame],adjustment=side==='R'?endpointAdjustment(id,frame):0;
+   const adjusted=[...before];adjusted[2]+=adjustment;
+   const cfg={zero:legacyZero[side],joints:P.map((pivot,g)=>({pivot,axis:legacyAxes[side][g],motor:g-1,gain:1}))};
+   const old=reference(side,before,cfg),bounded=reference(side,adjusted,cfg),current=reference(side,after,{zero:C[side]});
+   for(let g=0;g<8;g++){
+    nearMatrix(current[g],bounded[g],`${id}:${side}:${frame}:${g} complete legacy/current FK`);
+    const translation=new THREE.Vector3().setFromMatrixPosition(old[g]).distanceTo(new THREE.Vector3().setFromMatrixPosition(current[g]));
+    maxEndpointPositionMm=Math.max(maxEndpointPositionMm,translation);assert.ok(translation<2,`${id} endpoint translation bounded below2mm`);
+    for(let axis=0;axis<3;axis++){
+     const a=new THREE.Vector3().setFromMatrixColumn(old[g],axis).normalize(),b=new THREE.Vector3().setFromMatrixColumn(current[g],axis).normalize();
+     const angle=Math.acos(Math.max(-1,Math.min(1,a.dot(b))));maxEndpointBasisAngle=Math.max(maxEndpointBasisAngle,angle);
+     assert.ok(angle<=2*Math.PI/2048+1e-7,`${id} complete hand/link basis changes at most2ticks`);
+    }
+   }
+   conversionFrames++;if(adjustment)clippedFrames++;
+  }
+ }
+}
+assert.equal(clippedFrames,756,'only the three documented R upper-arm endpoint spans change intended rotation');
 function checkPose(label,targetRuntime=runtime,targetState=state){
  targetRuntime.applyPose();
  for(const side of ['R','L']){
-  const rig=targetState.rigs[side];rig.root.updateMatrixWorld(true);const expected=reference(side,rows[side],{zero:targetState.clip==='recorded-markc'?C[side]:Z[side]});
+  const rig=targetState.rigs[side];rig.root.updateMatrixWorld(true);const expected=reference(side,rows[side],{zero:targetState.clip==='recorded-markc'||converted(motions.clips[targetState.clip])?C[side]:Z[side]});
   for(let g=0;g<8;g++)nearMatrix(rig.groups[g].matrixWorld,expected[g],`${label} ${side} link ${g}`);
   // Full matrix comparison includes handedness and all three hand basis axes,
   // not just a palm normal; neither rotation around that normal nor mirror can hide.
@@ -122,4 +169,4 @@ for(const [id,clip]of clips){
  }
 }
 assert.equal(exportedHash.digest('hex'),'09c1cdcd8b6935210fda3530e75a6a1961c8d39a0a8bc4f35f902298658499ff','CSV samples/timing changed during geometry replacement');
-console.log(`PASS: ${clips.length} motions, ${poses} complete poses across both arms for markers and actual simplified meshes, ${matrices} full link/mesh matrices, max error ${maxError}; full hand transforms and original/edited CSV fingerprints retained after explicit authored reference rebase. Numerical check only; visual/hardware checks are separate.`);
+console.log(`PASS: ${clips.length} motions, ${poses} complete poses across both arms for markers and actual simplified meshes, ${matrices} full link/mesh matrices, max error ${maxError}; full hand transforms and original/edited CSV fingerprints retained after explicit authored reference rebase; ${conversionFrames} converted arm frames, ${clippedFrames} bounded endpoint frames, maximum endpoint displacement ${maxEndpointPositionMm}mm and basis change ${maxEndpointBasisAngle*180/Math.PI}deg. Numerical check only; visual/hardware checks are separate.`);

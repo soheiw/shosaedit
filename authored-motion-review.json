@@ -1,0 +1,716 @@
+{
+  "referenceProfile": "markc-video-reference",
+  "authoredCount": 17,
+  "numericQA": {
+    "bird-flap": {
+      "R": {
+        "frames": 300,
+        "maxEncoderStep": 65,
+        "q4RangeDeg": [
+          -7.998046875,
+          0.0
+        ],
+        "wristPeakDeg": 29.970703125,
+        "combinedWristPeakDeg": 29.970703125000004
+      },
+      "L": {
+        "frames": 300,
+        "maxEncoderStep": 65,
+        "q4RangeDeg": [
+          0.0,
+          7.998046875
+        ],
+        "wristPeakDeg": 29.970703125,
+        "combinedWristPeakDeg": 29.970703125000004
+      }
+    },
+    "hand-waves": {
+      "R": {
+        "frames": 360,
+        "maxEncoderStep": 48,
+        "q4RangeDeg": [
+          -21.97265625,
+          0.0
+        ],
+        "wristPeakDeg": 24.08203125,
+        "combinedWristPeakDeg": 24.082031249999993
+      },
+      "L": {
+        "frames": 360,
+        "maxEncoderStep": 40,
+        "q4RangeDeg": [
+          0.0,
+          21.97265625
+        ],
+        "wristPeakDeg": 24.08203125,
+        "combinedWristPeakDeg": 24.082031249999993
+      }
+    },
+    "alternating-waves": {
+      "R": {
+        "frames": 360,
+        "maxEncoderStep": 48,
+        "q4RangeDeg": [
+          -21.97265625,
+          0.0
+        ],
+        "wristPeakDeg": 24.08203125,
+        "combinedWristPeakDeg": 24.082031249999993
+      },
+      "L": {
+        "frames": 360,
+        "maxEncoderStep": 40,
+        "q4RangeDeg": [
+          0.0,
+          21.97265625
+        ],
+        "wristPeakDeg": 24.08203125,
+        "combinedWristPeakDeg": 24.082031249999993
+      }
+    },
+    "dab-pose": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          -119.970703125,
+          0.0
+        ],
+        "wristPeakDeg": 27.509765625,
+        "combinedWristPeakDeg": 27.578154964499976
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 32,
+        "q4RangeDeg": [
+          0.0,
+          5.9765625
+        ],
+        "wristPeakDeg": 5.9765625,
+        "combinedWristPeakDeg": 5.97656250000002
+      }
+    },
+    "bird-flap-back-up": {
+      "R": {
+        "frames": 300,
+        "maxEncoderStep": 65,
+        "q4RangeDeg": [
+          -7.998046875,
+          0.0
+        ],
+        "wristPeakDeg": 29.970703125,
+        "combinedWristPeakDeg": 29.970703125000004
+      },
+      "L": {
+        "frames": 300,
+        "maxEncoderStep": 65,
+        "q4RangeDeg": [
+          0.0,
+          7.998046875
+        ],
+        "wristPeakDeg": 29.970703125,
+        "combinedWristPeakDeg": 29.970703125000004
+      }
+    },
+    "hand-waves-back-up": {
+      "R": {
+        "frames": 360,
+        "maxEncoderStep": 48,
+        "q4RangeDeg": [
+          -21.97265625,
+          0.0
+        ],
+        "wristPeakDeg": 33.134765625,
+        "combinedWristPeakDeg": 33.134765625
+      },
+      "L": {
+        "frames": 360,
+        "maxEncoderStep": 40,
+        "q4RangeDeg": [
+          0.0,
+          21.97265625
+        ],
+        "wristPeakDeg": 33.134765625,
+        "combinedWristPeakDeg": 33.134765625
+      }
+    },
+    "alternating-waves-back-up": {
+      "R": {
+        "frames": 360,
+        "maxEncoderStep": 48,
+        "q4RangeDeg": [
+          -21.97265625,
+          0.0
+        ],
+        "wristPeakDeg": 33.134765625,
+        "combinedWristPeakDeg": 33.134765625
+      },
+      "L": {
+        "frames": 360,
+        "maxEncoderStep": 40,
+        "q4RangeDeg": [
+          0.0,
+          21.97265625
+        ],
+        "wristPeakDeg": 33.134765625,
+        "combinedWristPeakDeg": 33.134765625
+      }
+    },
+    "dab-pose-back-up": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          -119.970703125,
+          0.0
+        ],
+        "wristPeakDeg": 27.158203125,
+        "combinedWristPeakDeg": 27.22172791158023
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 32,
+        "q4RangeDeg": [
+          0.0,
+          5.9765625
+        ],
+        "wristPeakDeg": 5.9765625,
+        "combinedWristPeakDeg": 5.97656250000002
+      }
+    },
+    "banzai": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 48,
+        "q4RangeDeg": [
+          0.0,
+          0.0
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 48,
+        "q4RangeDeg": [
+          0.0,
+          0.0
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      }
+    },
+    "banzai-natural": {
+      "R": {
+        "frames": 270,
+        "maxEncoderStep": 57,
+        "q4RangeDeg": [
+          -34.013671875,
+          0.0
+        ],
+        "wristPeakDeg": 34.013671875,
+        "combinedWristPeakDeg": 34.01367187500001
+      },
+      "L": {
+        "frames": 270,
+        "maxEncoderStep": 52,
+        "q4RangeDeg": [
+          0.0,
+          37.96875
+        ],
+        "wristPeakDeg": 37.96875,
+        "combinedWristPeakDeg": 37.96875000000001
+      }
+    },
+    "surrender": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 23,
+        "q4RangeDeg": [
+          -90.0,
+          0.0
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 23,
+        "q4RangeDeg": [
+          0.0,
+          90.0
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      }
+    },
+    "present": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 21,
+        "q4RangeDeg": [
+          -55.37109375,
+          0.0
+        ],
+        "wristPeakDeg": 28.564453125,
+        "combinedWristPeakDeg": 33.537145550814124
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 3,
+        "q4RangeDeg": [
+          0.0,
+          0.0
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      }
+    },
+    "shrug": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          -119.619140625,
+          0.0
+        ],
+        "wristPeakDeg": 27.158203125,
+        "combinedWristPeakDeg": 27.446931615523837
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          0.0,
+          119.619140625
+        ],
+        "wristPeakDeg": 27.158203125,
+        "combinedWristPeakDeg": 27.446931615523837
+      }
+    },
+    "victory": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 25,
+        "q4RangeDeg": [
+          -95.9765625,
+          0.0
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 25,
+        "q4RangeDeg": [
+          0.0,
+          95.9765625
+        ],
+        "wristPeakDeg": 0.0,
+        "combinedWristPeakDeg": 0.0
+      }
+    },
+    "guard": {
+      "R": {
+        "frames": 240,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          -121.376953125,
+          0.0
+        ],
+        "wristPeakDeg": 21.97265625,
+        "combinedWristPeakDeg": 30.683276311817085
+      },
+      "L": {
+        "frames": 240,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          0.0,
+          121.376953125
+        ],
+        "wristPeakDeg": 21.97265625,
+        "combinedWristPeakDeg": 30.683276311817085
+      }
+    },
+    "bow-draw": {
+      "R": {
+        "frames": 300,
+        "maxEncoderStep": 31,
+        "q4RangeDeg": [
+          -119.970703125,
+          0.0
+        ],
+        "wristPeakDeg": 2.373046875,
+        "combinedWristPeakDeg": 3.0059978750685583
+      },
+      "L": {
+        "frames": 300,
+        "maxEncoderStep": 24,
+        "q4RangeDeg": [
+          0.0,
+          0.0
+        ],
+        "wristPeakDeg": 7.20703125,
+        "combinedWristPeakDeg": 7.209163290575257
+      }
+    },
+    "hug": {
+      "R": {
+        "frames": 300,
+        "maxEncoderStep": 36,
+        "q4RangeDeg": [
+          -108.10546875,
+          0.0
+        ],
+        "wristPeakDeg": 28.037109375,
+        "combinedWristPeakDeg": 28.055331557967996
+      },
+      "L": {
+        "frames": 300,
+        "maxEncoderStep": 38,
+        "q4RangeDeg": [
+          0.0,
+          98.4375
+        ],
+        "wristPeakDeg": 28.037109375,
+        "combinedWristPeakDeg": 28.058493918857852
+      }
+    }
+  },
+  "visualFrames": [
+    {
+      "id": "bird-flap",
+      "phase": "rise",
+      "target": 39,
+      "actual": "39"
+    },
+    {
+      "id": "bird-flap",
+      "phase": "hold",
+      "target": 110,
+      "actual": "110"
+    },
+    {
+      "id": "bird-flap",
+      "phase": "return",
+      "target": 269,
+      "actual": "269"
+    },
+    {
+      "id": "hand-waves",
+      "phase": "rise",
+      "target": 47,
+      "actual": "47"
+    },
+    {
+      "id": "hand-waves",
+      "phase": "hold",
+      "target": 150,
+      "actual": "150"
+    },
+    {
+      "id": "hand-waves",
+      "phase": "return",
+      "target": 323,
+      "actual": "323"
+    },
+    {
+      "id": "alternating-waves",
+      "phase": "rise",
+      "target": 47,
+      "actual": "47"
+    },
+    {
+      "id": "alternating-waves",
+      "phase": "hold",
+      "target": 150,
+      "actual": "150"
+    },
+    {
+      "id": "alternating-waves",
+      "phase": "return",
+      "target": 323,
+      "actual": "323"
+    },
+    {
+      "id": "dab-pose",
+      "phase": "rise",
+      "target": 33,
+      "actual": "33"
+    },
+    {
+      "id": "dab-pose",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "dab-pose",
+      "phase": "return",
+      "target": 228,
+      "actual": "228"
+    },
+    {
+      "id": "bird-flap-back-up",
+      "phase": "rise",
+      "target": 39,
+      "actual": "39"
+    },
+    {
+      "id": "bird-flap-back-up",
+      "phase": "hold",
+      "target": 110,
+      "actual": "110"
+    },
+    {
+      "id": "bird-flap-back-up",
+      "phase": "return",
+      "target": 269,
+      "actual": "269"
+    },
+    {
+      "id": "hand-waves-back-up",
+      "phase": "rise",
+      "target": 47,
+      "actual": "47"
+    },
+    {
+      "id": "hand-waves-back-up",
+      "phase": "hold",
+      "target": 150,
+      "actual": "150"
+    },
+    {
+      "id": "hand-waves-back-up",
+      "phase": "return",
+      "target": 323,
+      "actual": "323"
+    },
+    {
+      "id": "alternating-waves-back-up",
+      "phase": "rise",
+      "target": 47,
+      "actual": "47"
+    },
+    {
+      "id": "alternating-waves-back-up",
+      "phase": "hold",
+      "target": 150,
+      "actual": "150"
+    },
+    {
+      "id": "alternating-waves-back-up",
+      "phase": "return",
+      "target": 323,
+      "actual": "323"
+    },
+    {
+      "id": "dab-pose-back-up",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "dab-pose-back-up",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "dab-pose-back-up",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "banzai",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "banzai",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "banzai",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "banzai-natural",
+      "phase": "rise",
+      "target": 35,
+      "actual": "35"
+    },
+    {
+      "id": "banzai-natural",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "banzai-natural",
+      "phase": "return",
+      "target": 242,
+      "actual": "242"
+    },
+    {
+      "id": "surrender",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "surrender",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "surrender",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "present",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "present",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "present",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "shrug",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "shrug",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "shrug",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "victory",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "victory",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "victory",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "guard",
+      "phase": "rise",
+      "target": 31,
+      "actual": "31"
+    },
+    {
+      "id": "guard",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "guard",
+      "phase": "return",
+      "target": 215,
+      "actual": "215"
+    },
+    {
+      "id": "bow-draw",
+      "phase": "rise",
+      "target": 39,
+      "actual": "39"
+    },
+    {
+      "id": "bow-draw",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "bow-draw",
+      "phase": "return",
+      "target": 269,
+      "actual": "269"
+    },
+    {
+      "id": "hug",
+      "phase": "rise",
+      "target": 39,
+      "actual": "39"
+    },
+    {
+      "id": "hug",
+      "phase": "hold",
+      "target": 105,
+      "actual": "105"
+    },
+    {
+      "id": "hug",
+      "phase": "return",
+      "target": 269,
+      "actual": "269"
+    }
+  ],
+  "visualScope": "Actual detailed CAD, both arms at rise/hold/return; individual oblique hand views for both sides. Right palm landmark: two small motors, with diagnostic shells hidden. Left hand is actual claw CAD. This does not establish physical calibration.",
+  "originalTrackedFilesUnchanged": 16,
+  "originalRecordedHashes": {
+    "motion-data/marka.motion.json": "81bd5081679b24fc827275e901608b27309ddb0a8911ce06fe513aef53041cd9",
+    "motion-data/markb.motion.json": "fb371d7068d72176b5264489f8941c85635317fe21b8ca3da6f6e3c42d2c0fd4",
+    "motion-data/markc.motion.json": "d10f4627901453bcad900e2a109accf9242a99a281022a9d2167e254cef84d1c",
+    "motion-data/motions.json": "544a030aea208c80ee56351df7c71f37d9d1cc33474e8f3116e74fd9eb06cd20",
+    "motion-data/original-csv/COM14/marka.csv": "2bb967a25c877f872bcf5deb0dce3da9f23764d334f567dc1d0348a758087ff4",
+    "motion-data/original-csv/COM14/markb.csv": "b44187470d39f1aa4c674f745002e46140637516363d5b2fdc722c98033a2b45",
+    "motion-data/original-csv/COM14/markc.csv": "8031b9580e3b3672679174d6d9aeb8c0f64a8d998f4259ee07e98ed4be60fe20",
+    "motion-data/original-csv/COM15/marka.csv": "c929d2f0468adece92a2d9a2387e6f94e8af34ebaea28d9c0c7a548a98861d49",
+    "motion-data/original-csv/COM15/markb.csv": "c8b8335bd0cfd1a9bdcf9e55fefdb175656cbfb7664933e45d38586bc67df6e2",
+    "motion-data/original-csv/COM15/markc.csv": "7474b22fac4f5c834fb750cf527bc2aee4b4fed0033016b8b9f02c816ba15f3a",
+    "motion-data/original-csv/Motion1L.csv": "bf153944e984fcbe525ee52531e5dbb40c77ba47c10a883f62ac1cf71a0516d7",
+    "motion-data/original-csv/Motion1R.csv": "946911ca380237ba689f72ecf0ccc2cddf4451e313569495d4bf41c952803399",
+    "motion-data/original-csv/Motion2L.csv": "eef40878ec37da07e5812e34d50e9982e39c6096b44af5f677405144b88e8852",
+    "motion-data/original-csv/Motion2R.csv": "0ef41cb35f6676268de317e24e96cef244b06f035006928143668d136a71dfcf",
+    "motion-data/original-csv/Motion3L.csv": "3a1d112296ed4ce68a726a077bd8e10bd46c72414e67048aad28676e32366a12",
+    "motion-data/original-csv/Motion3R.csv": "59d25e3680ca5f1ea2815cb79283981d97f2dd71747a5aa86791ca2e90731919"
+  },
+  "endpointException": "Three back-up wave variants: right motor3 saturation at0, at most2ticks, maximum FK pivot shift0.17305mm and basis angle0.17578125deg. No modulo wrapping.",
+  "unverified": [
+    "physical joint limits",
+    "motor calibration",
+    "cables",
+    "full arm collisions",
+    "left palm absolute axial calibration"
+  ]
+}

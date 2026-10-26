@@ -15,6 +15,8 @@ export function applyAxisInterpretation(config){
  return out;
 }
 export function matchingReferenceProfile(recording,profiles=[]){
+ if(recording?.referenceProfile==='common')return null;
+ const explicit=profiles.find(p=>p.id===recording?.referenceProfile);if(explicit)return explicit;
  return profiles.find(p=>['R','L'].every(side=>Array.isArray(p.match?.[side])&&p.match[side].length===7&&p.match[side].every((v,i)=>recording?.[side]?.[0]?.[i]===v)))??null;
 }
 export function interpretedConfiguration(base,recording,profiles=[]){
