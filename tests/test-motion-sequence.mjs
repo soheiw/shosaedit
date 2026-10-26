@@ -69,3 +69,60 @@ const budgetClip = clip(Array(10000).fill(100));
 assert.equal(composeSequence([{clip: budgetClip}]).R.length, 10000);
 assert.throws(() => composeSequence([{clip: budgetClip, transitionFrames: 0}, {clip: a}]));
 console.log('Motion sequence: trimming, all motor channels, unequal arms, smooth transitions, source immutability and limits passed.');
+
+const overlap = (source, frames) => ({clip: source, transitionMode: 'overlap', transitionFrames: frames});
+const movingA = clip(Array.from({length: 20}, (_, t) => 100 + 11 * t));
+const movingB = clip(Array.from({length: 20}, (_, t) => 100 + 11 * (t + 12)));
+const matched = composeSequence([overlap(movingA, 8), {clip: movingB}]);
+assert.deepEqual(matched.R, clip(Array.from({length: 32}, (_, t) => 100 + 11 * t)).R, 'matched moving tracks retain constant velocity exactly');
+assert.deepEqual(matched.L, clip(Array.from({length: 32}, (_, t) => 100 + 11 * t)).L);
+assert.deepEqual(matched.composition.segments.map(s => [s.outputStartFrame, s.outputEndFrame, s.joinStartFrame, s.joinEndFrame]), [[0, 20, 12, 20], [12, 32, 32, 32]]);
+const shortArmsA = clip([10, 20, 30, 40, 50], [-50, -40]);
+const shortArmsB = clip([100, 200, 300, 400], [700, 800, 900]);
+const overlapBefore = JSON.stringify([shortArmsA, shortArmsB]);
+const blended = composeSequence([overlap(shortArmsA, 3), {clip: shortArmsB}]);
+assert.equal(blended.R.length, 6);
+assert.deepEqual(blended.R[2], shortArmsA.R[2]);
+assert.deepEqual(blended.R[4], shortArmsB.R[2]);
+assert.deepEqual(blended.L[2], shortArmsA.L[1]);
+assert.deepEqual(blended.L[3], shortArmsA.L[1].map((v, c) => Math.round((v + shortArmsB.L[1][c]) / 2)));
+assert.deepEqual(blended.L.at(-1), shortArmsB.L[2]);
+assert.equal(JSON.stringify([shortArmsA, shortArmsB]), overlapBefore);
+assert.deepEqual(composeSequence([overlap(a, 0), {clip: b}]).R, direct.R);
+assert.deepEqual(composeSequence([{clip: a, transitionMode: 'insert', transitionFrames: 3}, {clip: b}]).R,
+  composeSequence([{clip: a, transitionFrames: 3}, {clip: b}]).R);
+assert.equal(composeSequence([{clip: a, transitionMode: 'nonsense', transitionFrames: 1}]).R.length, 4, 'last mode and count are ignored');
+for (const n of [1, 4]) assert.throws(() => composeSequence([overlap(a, n), {clip: b}]), {code: 'INVALID_OVERLAP'});
+assert.throws(() => composeSequence([{clip: a, transitionMode: 'unknown'}, {clip: b}]), {code: 'INVALID_TRANSITION'});
+assert.throws(() => composeSequence([overlap(a, 2), overlap(b, 2), {clip: a}]), {code: 'OVERLAP_CONFLICT'});
+const mixed = composeSequence([overlap(a, 2), {clip: b, transitionFrames: 2}, {clip: a}]);
+assert.equal(mixed.R.length, 11);
+assert.deepEqual(mixed.composition.segments.map(s => [s.outputStartFrame, s.outputEndFrame, s.joinStartFrame, s.joinEndFrame]), [[0, 4, 2, 4], [2, 5, 5, 7], [7, 11, 11, 11]]);
+const exactFit = composeSequence([overlap(a, 2), overlap(a, 2), {clip: a}]);
+assert.equal(exactFit.R.length, 8, 'non-intersecting overlaps may touch within a middle selection');
+assert.equal(composeSequence([overlap(a, 3), {clip: b}], {maxFrames: 4}).R.length, 4, 'budget uses net duration');
+validateRecording(matched);
+validateRecording(blended);
+
+// Analytical moving signals: the quintic weight has zero first and second
+// derivatives at the boundary, so blending preserves each source's boundary
+// velocity/acceleration. Integer sampling adds at most a few counts of error.
+const signalA = t => 10000 + 20 * t + 2 * t * t;
+const signalB = t => 50000 + 30 * t - t * t;
+const n = 200, length = 400, offset = length - n;
+const analyticalA = clip(Array.from({length}, (_, t) => signalA(t)));
+const analyticalB = clip(Array.from({length}, (_, t) => signalB(t + offset)));
+const continuous = composeSequence([overlap(analyticalA, n), {clip: analyticalB}]);
+const x = continuous.R.map(r => r[0]);
+const velocity = (values, i) => (values[i + 1] - values[i - 1]) / 2;
+const acceleration = (values, i) => values[i + 1] - 2 * values[i] + values[i - 1];
+for (const [boundary, signal] of [[offset, signalA], [length - 1, signalB]]) {
+  const exact = Array.from({length: x.length}, (_, t) => signal(t));
+  assert.ok(Math.abs(velocity(x, boundary) - velocity(exact, boundary)) <= 2);
+  assert.ok(Math.abs(acceleration(x, boundary) - acceleration(exact, boundary)) <= 3);
+}
+for (let k = 0; k < n; k++) {
+  const u = k / (n - 1), w = u ** 3 * (10 - 15 * u + 6 * u * u), t = offset + k;
+  assert.equal(x[t], Math.round(signalA(t) + (signalB(t) - signalA(t)) * w));
+}
+console.log('Overlap sequences: moving-tail/head crossfade, duration/metadata, mixed joins, conflicts and boundary derivatives passed.');

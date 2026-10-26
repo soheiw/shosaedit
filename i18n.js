@@ -1,5 +1,13 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+'動作をつなぐ':'Motion sequence',
+'記録の読み込み先':'Import recording into','動きのリスト':'Motion library','未登録':'Empty',
+'WARNING表示のしきい値（許容値の%）':'WARNING threshold (% of limit)',
+'WARNING表示のしきい値（%）':'WARNING threshold (%)',
+'設定エラー：許容トルクは0より大きい値、WARNINGは0より大きく100以下で入力してください。':'Settings error: torque limits must be positive and WARNING must be greater than 0 and at most 100.',
+'WARNINGは0より大きく100以下で入力してください':'WARNING must be greater than 0 and at most 100',
+'現在のWARNING：':'Current WARNING: ',
+
 "モデル":"Model",
 "自動":"Auto",
 "簡易":"Simplified",
@@ -190,7 +198,7 @@ const words={
 const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const pattern=new RegExp(Object.keys(words).sort((a,b)=>b.length-a.length).map(escape).join('|'),'g');
 export function english(text){
- return text.replace(/（14軸中(\d+)軸）/g,'($1 of 14 axes)').replace(/未設定 (\d+)軸/g,'$1 axes without limits').replace(/超過([\d.]+)秒/g,'over limit for $1 s').replace(/^(右腕|左腕)を([\d.]+)秒遅らせる$/g,(_,arm,n)=>`${arm==='右腕'?'Right':'Left'} arm delayed by ${n} s`).replace(/第(\d+)列のみ（右ID (\d+) \/ 左ID (\d+)）/g,'Column $1 only (R ID $2 / L ID $3)')
+ return text.replace(/（許容値の([\d.]+)%超）/g,'(above $1% of limit)').replace(/（14軸中(\d+)軸）/g,'($1 of 14 axes)').replace(/未設定 (\d+)軸/g,'$1 axes without limits').replace(/超過([\d.]+)秒/g,'over limit for $1 s').replace(/^(右腕|左腕)を([\d.]+)秒遅らせる$/g,(_,arm,n)=>`${arm==='右腕'?'Right':'Left'} arm delayed by ${n} s`).replace(/第(\d+)列のみ（右ID (\d+) \/ 左ID (\d+)）/g,'Column $1 only (R ID $2 / L ID $3)')
  .replace(/再生時間 約([\d.]+)秒/g,'Playback duration ≈ $1 s')
  .replace(/前後各([\d.]+)秒 · 30fpsで前後各(\d+)コマ（端は利用できる範囲）/g,'±$1 s · $2 frames each side at 30 fps (truncated at endpoints)')
  .replace(/^リンク(\d+) 質量 kg$/g,'Link $1 mass kg')

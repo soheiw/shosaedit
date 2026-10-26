@@ -32,3 +32,14 @@ for(const side of ['R','L']){const a=warped[side].original;for(let i=0;i<a.times
 // And fast edited arms hold through the original1x comparison end.
 profile={...profile,curves:{R:{points:points(1),enabled:true,rate:2},L:{points:points(1),enabled:true,rate:3}},delays:{R:0,L:0}};const fastReady=new Promise(r=>done=r);panel.invalidate();const fast=await fastReady;near(fast.R.edited.duration,T);near(fast.R.edited.baseDuration,T/2);near(fast.L.edited.duration,T);near(fast.L.edited.baseDuration,T/3);for(const side of ['R','L']){const a=fast[side].edited;for(let i=0;i<a.times.length;i++)if(a.times[i]>a.baseDuration+1e-8){a.dynamic[i].forEach(v=>near(v,0));a.total[i].forEach((v,j)=>near(v,a.gravity[i][j]));}}
 console.log('Comparison holds: original1x row clock retained with final gravity-only holds, fast edited arms held to original end, common stats duration passed.');
+
+// Saving assesses the supplied flattened candidate, including joins, independently of selected preview.
+const motorHost=host.querySelector('[data-load="motors"]');
+const candidate={R:rows.map(r=>[...r]),L:rows.map(r=>[...r])};
+let candidateReport=await panel.assertRecording(candidate);assert.equal(candidateReport.missing.length,14);
+function limit(id,value){motorHost.listeners.input({target:{dataset:{motorLimit:id},value:String(value),valueAsNumber:value,setCustomValidity(){}}});}
+limit('R1',1e-8);await assert.rejects(panel.assertRecording(candidate),/ERROR.*R1/);
+limit('R1',1e9);candidateReport=await panel.assertRecording(candidate);assert.equal(candidateReport.over.length,0);
+// Edits during asynchronous candidate assessment invalidate output instead of accepting stale settings.
+const pending=panel.assertRecording(candidate);panel.invalidate();await assert.rejects(pending,/ERROR.*設定/);panel.dispose();
+console.log('Output guards: candidate-specific assessment, one-axis overload rejection, unset limits, recovery and stale-setting rejection passed.');

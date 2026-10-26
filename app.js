@@ -1,13 +1,13 @@
-import {createSequenceEditor} from './sequence-editor.js?v=sequence-1';
+import {createSequenceEditor} from './sequence-editor.js?v=overlap-2';
 import {loadDisplayModel,loadMassProperties} from './model-loader.js?v=public-hand-20261026';
-import {listSavedMotions,storeSavedMotion,uniqueMotionName} from './saved-motions.js';
+import {listSavedMotions,storeSavedMotion,uniqueMotionName} from './saved-motions.js?v=slots-2';
 import {readMotionFiles,validateRecording} from './motion-files.js';
-import {initLanguage} from './i18n.js?v=public-hand-20261026';
+import {initLanguage} from './i18n.js?v=limits-slots-2';
 import {exportRows,toCSV,zipFiles,downloadFile} from './export-motion.js';
 import {createArmDelayEditor,createPlaybackClock,sampleAtTime} from './arm-delay.js';
 import {createSmoothing} from './smoothing.js?v=named-1';
 import {createSpeedEditor} from './speed-curve.js?v=arms-2';
-import {createLoadPanel} from './load-panel.js?v=motors-1';
+import {createLoadPanel} from './load-panel.js?v=limits-3';
 import * as THREE from './vendor/three.module.js';
 import {OrbitControls} from './vendor/OrbitControls.js';
 const $=id=>document.getElementById(id);
@@ -70,8 +70,8 @@ function drawChart(){if(!motions)return;const canvas=$('chart'),ctx=canvas.getCo
 function buildCalibration(){const side=$('cal-side').value,c=config[side],base=side==='R'?1:11;$('resolution').value=config.resolution;$('zero-inputs').innerHTML=c.zero.map((v,i)=>`<label>ID ${base+i} 基準<input type="number" data-zero="${i}" value="${v}" step="1"></label>`).join('');$('mapping').innerHTML=c.joints.slice(1).map((j,k)=>{const g=k+1;return `<tr><td><span style="color:${palette[k%9]}">●</span> ${names[g]}</td><td><select data-j="${g}" data-field="motor"><option value="-1" ${j.motor===-1?'selected':''}>固定</option>${c.zero.map((_,i)=>`<option value="${i}" ${j.motor===i?'selected':''}>${base+i}</option>`).join('')}</select></td><td><input type="number" step="0.1" data-j="${g}" data-field="gain" value="${j.gain}"></td><td>${j.axis.map((v,i)=>`<input aria-label="${names[g]} 軸 ${'XYZ'[i]}" type="number" step="0.1" data-j="${g}" data-field="axis" data-i="${i}" value="${v}">`).join('')}</td><td>${j.pivot.map((v,i)=>`<input aria-label="${names[g]} 位置 ${'XYZ'[i]}" type="number" step="1" data-j="${g}" data-field="pivot" data-i="${i}" value="${v}">`).join('')}</td></tr>`;}).join('');}
 function showModelInfo(notice=''){
  const simple=model.kind==='simple';$('model-status').textContent=simple?'簡易モデル · 関節動作は共通 · 指固定':`${model.bodies.length}部品 · 詳細CAD（ローカル） · 指固定`;
- $('model-notice').textContent=notice|| (simple?'腕は箱・棒・球、手首より先は元のCAD形状で表示しています。関節動作と負荷計算は詳細版と共通です。':'詳細CADは private-model/ のローカルデータから表示しています。');
- $('hand-shells').disabled=simple;$('surfaces').disabled=simple;
+ $('model-notice').textContent=notice|| (simple?'腕は箱・棒・球、手首より先は元のCAD形状で表示しています。関節動作と負荷計算は詳細版と共通です。':'');
+ $('hand-shells').disabled=simple;
 }
 async function switchDisplayModel(){
  const token=++modelRevision,mode=$('model-mode').value;$('reload-model').disabled=true;
@@ -80,7 +80,7 @@ async function switchDisplayModel(){
   massShapes=await loadMassProperties();loadPanel?.dispose();initLoadAnalysis();loadPanel.invalidate();updateReadout();if(window.previewDebug)window.previewDebug.model=model;
  }finally{if(token===modelRevision)$('reload-model').disabled=false;}
 }
-function updateMeshVisibility(){for(const m of state.meshes){const b=m.userData.body;const shell=['ボディ174','ボディ175'].includes(b.source);m.visible=(b.solid!==false||$('surfaces').checked)&&!(shell&&$('hand-shells').checked);if(['ボディ124','ボディ126'].includes(b.source))m.material.emissive.set($('hand-shells').checked?0x994400:0);}}
+function updateMeshVisibility(){for(const m of state.meshes){const b=m.userData.body;const shell=['ボディ174','ボディ175'].includes(b.source);m.visible=(b.solid!==false)&&!(shell&&$('hand-shells').checked);if(['ボディ124','ボディ126'].includes(b.source))m.material.emissive.set($('hand-shells').checked?0x994400:0);}}
 function selectBody(mesh){if(state.selected)state.selected.material.emissive.set(0);state.selected=mesh;mesh.material.emissive.set(0x524620);const {body,group}=mesh.userData;$('body-selection').textContent=`選択：${body.component} / ${body.name} → ${names[group]}${model.kind==='simple'?'（簡易表示の所属）':'（Fusionの所属を使用）'}`;$('status').textContent=`${body.component} / ${body.name}`;}
 function fit(hand=false,front=false){
  if(!camera||!state.rigs.R)return;
@@ -100,8 +100,19 @@ function initLoadAnalysis(){
  loadPanel=createLoadPanel($('load-editor'),{shapes:massShapes,motorSpecs,motorMapping,
   getInputs:()=>({clip:state.clip,config,rate:1,curves:timing?.curves,delays:timing?.delays,curve:speedEditor.snapshot(),rows:Object.fromEntries(['R','L'].map(side=>[side,{original:motions.clips[state.clip][side],edited:smoothing.rows(state.clip,side)}]))}),
   onSeek:(frame,details)=>{state.playing=false;$('play').textContent='再生';setTime(details.time);},
-  onHeatChange:()=>{},onResults:()=>{}
+  onHeatChange:()=>{},onResults:updateLoadVerdict
  });
+}
+function updateLoadVerdict(){
+ const el=$('load-edit-verdict');if(!el)return;
+ const report=loadPanel?.getMotorAssessment(),invalid=loadPanel?.hasInvalidSettings();
+ const en=document.documentElement.lang==='en';
+ el.dataset.state=invalid?'over':report?.status??'pending';
+ el.textContent=invalid?(en?'ERROR: Invalid load settings':'ERROR: 負荷設定の入力を確認してください'):!report?.motors.every(m=>m.available)?(en?'Recalculating estimated loads…':'推定負荷を再計算中…'):report.over.length?`ERROR: ${report.over.map(m=>`${m.id} ${(m.ratio*100).toFixed(0)}%`).join(', ')} · ${en?'Torque limit exceeded; saving/export blocked':'許容負荷超過・保存と書き出し不可'}`:report.warnings?.length?`WARNING: ${report.warnings.map(m=>`${m.id} ${(m.ratio*100).toFixed(0)}%`).join(', ')} · ${en?'Near configured torque limit':'設定した警告割合を超過'}`:report.missing.length?(en?'Unassessed: some motor limits are unset':'未判定：許容負荷が未設定のモーターがあります'):(en?'Estimated loads within configured limits':'推定負荷は設定した許容値内');
+}
+async function validateOutput(recording){
+ if(!loadPanel)throw Error('ERROR: 負荷計算の準備ができていません');
+ return loadPanel.assertRecording(recording);
 }
 const loadLow=new THREE.Color('#6aa5df'),loadMiddle=new THREE.Color('#edc86d'),loadHigh=new THREE.Color('#ec7965');
 let loadColorsApplied=false;
@@ -117,14 +128,14 @@ function paintLoadColors(original){
  if(label){if(altered)label.textContent='表示条件が異なります';else if(!ready)label.textContent='— N·m';else{const sides=state.side==='both'?['R','L']:[state.side];const peak=Math.max(...sides.flatMap(side=>loadPanel.currentAtTime(side,original,state.elapsed).map(Math.abs)));label.textContent=peak.toFixed(2)+' N·m';}}
 }
 
-function exportMotion(side){
- try{const clip=state.clip,count=frameCount(),files={},summary=[];
- for(const arm of side?[side]:['R','L']){const rows=exportRows(smoothing.rows(clip,arm),count,timing.curves[arm],motions.fps,{delaySeconds:timing.delays[arm],durationSeconds:timing.editedDuration});files[`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}${arm}.csv`]=toCSV(rows);summary.push(`${arm==='R'?'右':'左'} ${rows.length}行・${(rows.length/motions.fps).toFixed(2)}秒`);}
+async function exportMotion(side){
+ try{const candidate=editedSequenceSource().clip,clip=state.clip;await validateOutput(candidate);const files={},summary=[];
+ for(const arm of side?[side]:['R','L']){const rows=candidate[arm];files[`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}${arm}.csv`]=toCSV(rows);summary.push(`${arm==='R'?'右':'左'} ${rows.length}行・${(rows.length/motions.fps).toFixed(2)}秒`);}
  if(side)downloadFile(`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}${side}.csv`,Object.values(files)[0],'text/csv;charset=utf-8');else downloadFile(`${motions.metadata?.[clip]?.exportStem||'Motion'+clip}_edited.zip`,zipFiles(files),'application/zip');
  $('export-status').textContent=`書き出しました：${summary.join(' ／ ')}`;
  }catch(e){$('export-status').textContent='書き出せません：'+e.message;}
 }
-function registerMotion(id,motion){motions.clips[id]={R:motion.R,L:motion.L};motions.metadata??={};motions.metadata[id]={name:motion.name,description:motion.description,exportStem:motion.exportStem,previewFrame:motion.previewFrame,bakedEdits:motion.bakedEdits};let option=[...$('custom-motion').options].find(o=>o.value===id);if(!option){option=document.createElement('option');option.value=id;$('custom-motion').appendChild(option);}option.textContent=motion.name;if(id.startsWith('saved-')||id.startsWith('sequence-'))option.dataset.noTranslate='';sequenceEditor?.refreshSources();}
+function registerMotion(id,motion){const slot=document.querySelector(`[data-clip="${id}"]`);if(slot){slot.disabled=false;slot.textContent='Motion '+id.split('-').at(-1);slot.title=motion.name;}motions.clips[id]={R:motion.R,L:motion.L};motions.metadata??={};motions.metadata[id]={name:motion.name,description:motion.description,exportStem:motion.exportStem,previewFrame:motion.previewFrame,bakedEdits:motion.bakedEdits};let option=[...$('custom-motion').options].find(o=>o.value===id);if(!option){option=document.createElement('option');option.value=id;$('custom-motion').appendChild(option);}option.textContent=motion.name;if(id.startsWith('saved-')||id.startsWith('sequence-'))option.dataset.noTranslate='';sequenceEditor?.refreshSources();}
 function editedSequenceSource(){
  if(Math.ceil(timing.editedDuration*30-1e-9)>10000)throw Error('保存できる動きは約333秒までです。速度設定を見直してください。');
  const name=(motions.metadata?.[state.clip]?.name||'Motion '+state.clip)+'（編集）',clip={format:'augmented-arms-motion',version:1,fps:30,name,bakedEdits:true};
@@ -140,6 +151,7 @@ async function initializeSequenceEditor(){
    const id='sequence-preview-'+crypto.randomUUID();registerMotion(id,validateRecording(recording));sequencePreviewId=id;sequenceActiveId=id;setClip(id);
   },
   async onSave(recording){
+   await validateOutput(recording);
    recording.name=uniqueMotionName(recording.name,Object.entries(motions.metadata??{}).filter(([id])=>!id.startsWith('sequence-preview-')).map(([,m])=>m.name));
    recording.exportStem='Sequence_'+Date.now();const id='saved-'+crypto.randomUUID();
    await storeSavedMotion({id,createdAt:Date.now(),recording});registerMotion(id,validateRecording(recording));sequenceActiveId=id;setClip(id);
@@ -156,13 +168,23 @@ async function saveNamedMotion(){
   const id='saved-'+crypto.randomUUID(),stem='SavedMotion_'+new Date().toISOString().replace(/[^0-9]/g,'').slice(0,17);
   const recording={format:'augmented-arms-motion',version:1,fps:30,name,description:'速度・時間差・平滑化を反映して保存した動き',exportStem:stem,bakedEdits:true};
   for(const side of ['R','L'])recording[side]=exportRows(smoothing.rows(state.clip,side),frameCount(),timing.curves[side],30,{delaySeconds:timing.delays[side],durationSeconds:timing.editedDuration});
-  const validated=validateRecording(recording);await storeSavedMotion({id,createdAt:Date.now(),recording});registerMotion(id,validated);setClip(id);
+  const validated=validateRecording(recording);await validateOutput(recording);await storeSavedMotion({id,createdAt:Date.now(),recording});registerMotion(id,validated);setClip(id);
   downloadFile(name.replace(/[\\/:*?"<>|\x00-\x1f]/g,'_')+'.motion.json',JSON.stringify(recording),'application/json');
   status.textContent='保存してリストに追加しました：'+name;
  }catch(error){status.textContent='保存できません：'+error.message;}finally{button.disabled=false;}
 }
-async function importMotion(){const input=$('motion-file');try{const motion=await readMotionFiles([...input.files]);if(!motion)return;let hash=2166136261;for(const ch of JSON.stringify([motion.R,motion.L]))hash=Math.imul(hash^ch.charCodeAt(0),16777619);const matching=Object.keys(motions.clips).find(key=>JSON.stringify([motions.clips[key].R,motions.clips[key].L])===JSON.stringify([motion.R,motion.L]));const id=matching||'file-'+(hash>>>0).toString(16);if(!motions.clips[id])registerMotion(id,motion);setClip(id);$('motion-file-status').textContent='読み込みました：'+motion.name;}catch(e){$('motion-file-status').textContent='読み込めません：'+e.message;}finally{input.value='';}}
-function bind(){$('model-mode').onchange=switchDisplayModel;$('reload-model').onclick=switchDisplayModel;$('save-motion').onclick=saveNamedMotion;$('save-motion-name').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveNamedMotion();}};$('motion-file').onchange=importMotion;$('custom-motion').onchange=e=>{if(e.target.value)setClip(e.target.value);};$('export-pair').onclick=()=>exportMotion();$('export-right').onclick=()=>exportMotion('R');$('export-left').onclick=()=>exportMotion('L');document.querySelectorAll('[data-clip]').forEach(b=>b.onclick=()=>setClip(b.dataset.clip));$('play').onclick=()=>{if(!state.playing&&state.elapsed>=timing.duration)setTime(0);state.playing=!state.playing;$('play').textContent=state.playing?'一時停止':'再生';};$('timeline').oninput=e=>{state.playing=false;$('play').textContent='再生';setTime(+e.target.value/30);};for(const [id,delta] of [['prev',-1],['next',1]])$(id).onclick=()=>{state.playing=false;$('play').textContent='再生';setTime(state.elapsed+delta/30);};$('rewind').onclick=()=>setTime(0);$('loop').onchange=e=>state.loop=e.target.checked;$('side').onchange=e=>{state.side=e.target.value;applyPose();fit();};$('chart-side').onchange=e=>{state.chartSide=e.target.value;makeReadings();};$('cad').onchange=()=>{applyPose();if($('autofit').checked)fit();};$('autofit').onchange=()=>{if($('autofit').checked)fit();};$('solo').onchange=e=>{state.solo=+e.target.value;applyPose();};$('colors').onchange=rebuildRig;$('surfaces').onchange=updateMeshVisibility;$('hand-shells').onchange=updateMeshVisibility;$('axes').onchange=e=>Object.values(state.rigs).forEach(r=>r.helpers.forEach(h=>{if(h)h.visible=e.target.checked;}));$('fit').onclick=()=>{$('autofit').checked=true;fit();};$('hand').onclick=()=>{$('autofit').checked=false;fit(true);};$('front').onclick=()=>fit(false,true);$('cal-side').onchange=buildCalibration;$('resolution').onchange=e=>{const v=+e.target.value;if(v>0){config.resolution=v;persist();applyPose();}};$('zero-inputs').onchange=e=>{if(e.target.dataset.zero!==undefined){const v=+e.target.value;if(Number.isFinite(v)){config[$('cal-side').value].zero[+e.target.dataset.zero]=v;persist();applyPose();}}};$('mapping').onchange=e=>{const t=e.target;if(!t.dataset.field)return;const side=$('cal-side').value,j=config[side].joints[+t.dataset.j],v=+t.value;if(!Number.isFinite(v))return;if(t.dataset.i!==undefined){j[t.dataset.field][+t.dataset.i]=v;if(t.dataset.field==='axis'&&Math.hypot(...j.axis)<1e-6){j.axis=[1,0,0];buildCalibration();}}else j[t.dataset.field]=v;persist();rebuildRig();};$('set-zero').onclick=()=>{const side=$('cal-side').value;config[side].zero=[...rowFor(side)];persist();buildCalibration();applyPose();};$('reset').onclick=()=>{config=freshConfig();persist();buildCalibration();rebuildRig();};$('save-config').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(config,null,2)],{type:'application/json'}));a.download='arm-calibration.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};$('import-config').onchange=async e=>{try{config=validConfig(JSON.parse(await e.target.files[0].text()));config.bodyGroups??={};for(const g of Object.values(config.bodyGroups))if(!Number.isInteger(g)||g<0||g>7)throw Error('部品対応が不正です');persist();buildCalibration();rebuildRig();$('status').textContent='設定を読み込みました';}catch(err){$('status').textContent='読み込めません：'+err.message;}};window.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.code==='Space'){e.preventDefault();$('play').click();}if(e.code==='ArrowRight')$('next').click();if(e.code==='ArrowLeft')$('prev').click();});$('chart').onclick=e=>{const r=e.target.getBoundingClientRect();state.playing=false;$('play').textContent='再生';setFrame((e.clientX-r.left-37)/(r.width-44)*(frameCount()-1));};}
+async function importMotion(){const input=$('motion-file');try{const motion=await readMotionFiles([...input.files]);if(!motion)return;let hash=2166136261;for(const ch of JSON.stringify([motion.R,motion.L]))hash=Math.imul(hash^ch.charCodeAt(0),16777619);const matching=Object.keys(motions.clips).find(key=>JSON.stringify([motions.clips[key].R,motions.clips[key].L])===JSON.stringify([motion.R,motion.L]));const target=$('record-target').value,id=target||matching||'file-'+(hash>>>0).toString(16);if(target){await storeSavedMotion({id,createdAt:Date.now(),recording:{format:'augmented-arms-motion',version:1,fps:30,...motion}},{replace:true});registerMotion(id,motion);}else if(!motions.clips[id])registerMotion(id,motion);setClip(id);$('motion-file-status').textContent='読み込みました：'+motion.name;}catch(e){$('motion-file-status').textContent='読み込めません：'+e.message;}finally{input.value='';}}
+function initializePanelFolds(){
+ let saved={};try{saved=JSON.parse(localStorage.getItem('shosaedit-panel-folds-v1'))||{};}catch{}
+ document.querySelectorAll('aside>section').forEach((section,index)=>{
+  const heading=section.querySelector('h2');if(!heading)return;
+  const id=section.id||'panel-'+index,details=document.createElement('details'),summary=document.createElement('summary');
+  details.className='panel-fold';details.open=saved[id]!==false;summary.textContent=heading.textContent;
+  section.before(details);details.append(summary,section);
+  details.addEventListener('toggle',()=>{saved[id]=details.open;try{localStorage.setItem('shosaedit-panel-folds-v1',JSON.stringify(saved));}catch{}});
+ });
+}
+function bind(){$('model-mode').onchange=switchDisplayModel;$('reload-model').onclick=switchDisplayModel;$('save-motion').onclick=saveNamedMotion;$('save-motion-name').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveNamedMotion();}};$('motion-file').onchange=importMotion;$('custom-motion').onchange=e=>{if(e.target.value)setClip(e.target.value);};$('export-pair').onclick=()=>exportMotion();$('export-right').onclick=()=>exportMotion('R');$('export-left').onclick=()=>exportMotion('L');document.querySelectorAll('[data-clip]').forEach(b=>b.onclick=()=>setClip(b.dataset.clip));$('play').onclick=()=>{if(!state.playing&&state.elapsed>=timing.duration)setTime(0);state.playing=!state.playing;$('play').textContent=state.playing?'一時停止':'再生';};$('timeline').oninput=e=>{state.playing=false;$('play').textContent='再生';setTime(+e.target.value/30);};for(const [id,delta] of [['prev',-1],['next',1]])$(id).onclick=()=>{state.playing=false;$('play').textContent='再生';setTime(state.elapsed+delta/30);};$('rewind').onclick=()=>setTime(0);$('loop').onchange=e=>state.loop=e.target.checked;$('side').onchange=e=>{state.side=e.target.value;applyPose();fit();};$('chart-side').onchange=e=>{state.chartSide=e.target.value;makeReadings();};$('cad').onchange=()=>{applyPose();if($('autofit').checked)fit();};$('autofit').onchange=()=>{if($('autofit').checked)fit();};$('solo').onchange=e=>{state.solo=+e.target.value;applyPose();};$('colors').onchange=rebuildRig;$('hand-shells').onchange=updateMeshVisibility;$('axes').onchange=e=>Object.values(state.rigs).forEach(r=>r.helpers.forEach(h=>{if(h)h.visible=e.target.checked;}));$('fit').onclick=()=>{$('autofit').checked=true;fit();};$('hand').onclick=()=>{$('autofit').checked=false;fit(true);};$('front').onclick=()=>fit(false,true);$('cal-side').onchange=buildCalibration;$('resolution').onchange=e=>{const v=+e.target.value;if(v>0){config.resolution=v;persist();applyPose();}};$('zero-inputs').onchange=e=>{if(e.target.dataset.zero!==undefined){const v=+e.target.value;if(Number.isFinite(v)){config[$('cal-side').value].zero[+e.target.dataset.zero]=v;persist();applyPose();}}};$('mapping').onchange=e=>{const t=e.target;if(!t.dataset.field)return;const side=$('cal-side').value,j=config[side].joints[+t.dataset.j],v=+t.value;if(!Number.isFinite(v))return;if(t.dataset.i!==undefined){j[t.dataset.field][+t.dataset.i]=v;if(t.dataset.field==='axis'&&Math.hypot(...j.axis)<1e-6){j.axis=[1,0,0];buildCalibration();}}else j[t.dataset.field]=v;persist();rebuildRig();};$('set-zero').onclick=()=>{const side=$('cal-side').value;config[side].zero=[...rowFor(side)];persist();buildCalibration();applyPose();};$('reset').onclick=()=>{config=freshConfig();persist();buildCalibration();rebuildRig();};$('save-config').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(config,null,2)],{type:'application/json'}));a.download='arm-calibration.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};$('import-config').onchange=async e=>{try{config=validConfig(JSON.parse(await e.target.files[0].text()));config.bodyGroups??={};for(const g of Object.values(config.bodyGroups))if(!Number.isInteger(g)||g<0||g>7)throw Error('部品対応が不正です');persist();buildCalibration();rebuildRig();$('status').textContent='設定を読み込みました';}catch(err){$('status').textContent='読み込めません：'+err.message;}};window.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.code==='Space'){e.preventDefault();$('play').click();}if(e.code==='ArrowRight')$('next').click();if(e.code==='ArrowLeft')$('prev').click();});$('chart').onclick=e=>{const r=e.target.getBoundingClientRect();state.playing=false;$('play').textContent='再生';setFrame((e.clientX-r.left-37)/(r.width-44)*(frameCount()-1));};}
 function renderComparison(){
  const w=$('viewport').clientWidth,h=$('viewport').clientHeight,half=Math.floor(w/2);
  renderer.setScissorTest(true);
@@ -180,4 +202,4 @@ if(!config.rightElbowDirectionV1){const j=config.R.joints[4];if(j.motor===3&&j.g
 if(!config.rightShoulderDirectionV1){const j=config.R.joints[2];if(j.motor===1&&j.gain===1&&j.axis.join(',')==='1,0,0')j.axis=[-1,0,0];config.rightShoulderDirectionV1=true;persist();}
 const bin=initialGeometry.bin;initScene();makeRigs(bin);speedEditor=createSpeedEditor($('speed-editor'),timingChanged);delayEditor=createArmDelayEditor($('delay-editor'),timingChanged);smoothing=createSmoothing($('smoothing-editor'),motions,()=>{updateReadout();loadPanel?.invalidate();});smoothing.setClip(state.clip);const library=await load('generated-motions.json');const loadedLibrary=await Promise.all(library.map(async entry=>({id:entry.id,motion:validateRecording(await load(entry.file))})));for(const entry of loadedLibrary)registerMotion(entry.id,entry.motion);
 try{for(const entry of await listSavedMotions()){try{registerMotion(entry.id,validateRecording(entry.recording));}catch{}}}catch{$('save-motion-status').textContent='保存済みの動きを読み込めませんでした。再読み込みしてください。';}
-bind();buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');await initializeSequenceEditor();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}
+bind();$('language').addEventListener('change',updateLoadVerdict);buildCalibration();chartReady=true;initLoadAnalysis();makeReadings();setClip('1');await initializeSequenceEditor();initializePanelFolds();$('loading').remove();$('model-mode').value=preferredModelMode();showModelInfo(initialGeometry.notice);window.previewDebug={state,config:()=>config,model,motions,scene,renderer};requestAnimationFrame(animate);}catch(e){$('loading').textContent='読み込みに失敗しました：'+e.message;$('status').textContent='起動用ファイルから開いてください';console.error(e);}

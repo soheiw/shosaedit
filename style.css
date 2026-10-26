@@ -53,3 +53,19 @@ header{padding:10px 16px 8px;gap:8px}h1{font-size:23px;margin:0}.eyebrow{font-si
 .sequence-total{color:var(--accent);font-size:12px}
 .sequence-error{color:#f4a5a5}
 button:disabled{opacity:.45;cursor:default}
+
+.sequence-mode{display:flex;align-items:center;gap:8px;margin:5px 0}.sequence-mode select{flex:1;min-width:0}
+
+header>div:first-child{display:flex;align-items:baseline;gap:10px}header{padding-top:5px;padding-bottom:5px}header h1{font-size:20px;line-height:1.2}header .eyebrow{font-size:9px;white-space:nowrap}
+
+.stage-top>div:first-child{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 9px;min-width:0}.stage-top b{display:inline;font-size:12px;white-space:nowrap}.stage-top{padding:6px 10px;align-items:center}.view-buttons{flex-shrink:0}
+.stage-top>div:first-child{flex-wrap:nowrap}.stage-top #model-status{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}header>div:first-child{white-space:nowrap;flex-shrink:0}
+
+#model-notice:empty{display:none}
+
+.panel-fold{border:1px solid var(--line);border-radius:6px;background:var(--panel);overflow:hidden}.panel-fold>summary{padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer}.panel-fold>section{border:0;border-radius:0;padding-top:2px}.panel-fold h2{display:none}.panel-fold .section-heading{margin-bottom:5px}.panel-fold .section-heading:empty{display:none}
+
+.stage-top>div:first-child{flex-basis:auto}html[lang=en] .stage-top{flex-wrap:nowrap}.motor-warning-setting{display:flex;align-items:center;gap:8px;font-size:11px}.motor-warning-setting input{width:70px}
+
+.stage-playback{padding:6px 10px;border-top:1px solid var(--line);flex-shrink:0}.stage-playback .time{display:inline-flex}.stage-playback .time strong{font-size:17px}.stage-playback .frame-line{float:right}.stage-playback input[type=range]{margin:3px 0}.stage-playback .transport{display:inline-flex;margin:3px 0;gap:4px}.stage-playback .transport button{font-size:11px;padding:4px 10px}.stage-playback .row{display:inline-flex;float:right;margin:5px 0}.stage-playback .row label{font-size:11px}@media(max-width:760px){.stage{height:clamp(295px,46dvh,420px);min-height:295px}.stage-playback{padding:4px 9px}.stage-playback .frame-line{font-size:9px}}
+.stage-playback .frame-line{gap:8px}

@@ -1,15 +1,16 @@
-import {composeSequence} from './motion-sequence.js';
+import {composeSequence} from './motion-sequence.js?v=overlap-2';
 import {validateRecording} from './motion-files.js';
 
 const labels={
  title:['動作をつなぐ','Motion sequence'],source:['追加する動作','Source motion'],add:['元データを追加','Add original'],
  edited:['現在の修正後を追加','Add current edited motion'],name:['連結後の名前','Sequence name'],
+ mode:['つなぎ方','Join type'],insert:['間を補間','Insert transition'],overlap:['重ねてブレンド','Overlap blend'],overlapTime:['重ねる時間（秒）','Overlap (s)'],
  start:['開始（秒）','Start (s)'],end:['終了（秒）','End (s)'],join:['次へのつなぎ（秒）','Transition to next (s)'],
  up:['上へ','Move up'],down:['下へ','Move down'],remove:['削除','Remove'],clear:['すべて外す','Remove all'],
  preview:['連結してプレビュー','Preview sequence'],save:['連結して保存','Save sequence'],
  jump:['つなぎ目前へ（元の時間）','Before join (original)'],empty:['動作を追加すると、ここに順番が並びます。','Add motions to arrange them here.'],
  help:['JSONや左右CSVを「ファイルを開く」で読み込み、ここに追加できます。元データの追加は速度・平滑化を適用しません。修正を含める場合は「現在の修正後を追加」を使います。','Import JSON or paired CSVs with Open motion file, then add them here. Add original uses raw data; use Add current edited motion to include your edits.'],
- trimHelp:['終了時刻の直前までを使用します。つなぎ時間は間に追加されます。0秒なら直接切り替えます。最後の動作に後続のつなぎはありません。','End is exclusive. Transition time is inserted between clips; zero makes a direct cut. No transition follows the last clip.'],
+ trimHelp:['終了時刻は含みません。「間を補間」は間に時間を追加し、「重ねてブレンド」は前の末尾と次の先頭を重ねます。重なる長さは手動で指定します。0秒は直接切り替え、最後の動作に後続のつなぎはありません。','End is exclusive. Insert transition adds time; Overlap blend combines the outgoing tail with the incoming head. Set the overlap length manually. Zero makes a direct cut; no join follows the last clip.'],
  basis:['同じモーター列・基準姿勢の記録を使ってください。つなぎは関節値の補間で、撮影間の基準合わせは自動では行いません。','Use recordings with matching motor columns and reference poses. Joins interpolate motor values; recording calibration is not aligned automatically.'],
  draft:['並べ方と切り出し範囲は、このブラウザに下書き保存されます。完成した動きはJSONや左右CSVで書き出せます。','The arrangement and trim ranges are saved as a draft in this browser. Export the completed motion as JSON or paired CSVs.'],
  ready:['連結結果をリストに追加して表示しました。','Sequence added to the list and displayed.'],
@@ -20,6 +21,9 @@ const labels={
  EMPTY_SEQUENCE:['動作を1つ以上追加してください。','Add at least one motion.'],
  INVALID_SEGMENT:['動作の設定を確認してください。','Check the segment settings.'],
  INVALID_DATA:['右9列・左8列の整数データが必要です。','Motion data must have 9 right and 8 left integer columns.'],
+ INVALID_TRANSITION_MODE:['つなぎ方を選択してください。','Select a join type.'],
+ INVALID_OVERLAP:['重ねる時間は0秒、または2フレーム以上で、両方の区間の長さ以内にしてください。','Overlap must be zero or at least two frames, and fit within both clips.'],
+ OVERLAP_CONFLICT:['前後の重なりが中間の動作で重複しています。重ねる時間を短くするか、切り出す区間を長くしてください。','Incoming and outgoing overlap regions intersect. Reduce their lengths or extend the middle clip.'],
  INVALID_TRIM:['開始・終了時刻を確認してください。','Check the start and end times.'],
  INVALID_TRANSITION:['つなぎ時間は0〜10秒にしてください。','Transition time must be between 0 and 10 seconds.'],
  TOO_LONG:['全体を10,000フレーム（約333秒）以内にしてください。','Keep the sequence within 10,000 frames (about 333 seconds).'],
@@ -52,8 +56,8 @@ export async function createSequenceEditor(host,{getSources,getEdited,onPreview,
  let restorationError=false;
  try{const saved=await draftIO();if(saved){
  if(!Array.isArray(saved.segments)||saved.segments.length>50)throw Error('Invalid draft');
- segments=saved.segments.map(s=>({...s,clip:validateRecording({format:'augmented-arms-motion',version:1,fps:30,...s.clip}),sourceName:String(s.sourceName||'Motion').slice(0,120)}));
- for(const s of segments){if(!Number.isInteger(s.startFrame)||!Number.isInteger(s.endFrame)||s.startFrame<0||s.endFrame<=s.startFrame||s.endFrame>Math.max(s.clip.R.length,s.clip.L.length)||!Number.isInteger(s.transitionFrames)||s.transitionFrames<0||s.transitionFrames>300)throw Error('Invalid draft selection');}
+ segments=saved.segments.map(s=>({...s,clip:validateRecording({format:'augmented-arms-motion',version:1,fps:30,...s.clip}),sourceName:String(s.sourceName||'Motion').slice(0,120),transitionMode:s.transitionMode??'insert'}));
+ for(const s of segments){if(!['insert','overlap'].includes(s.transitionMode)||!Number.isInteger(s.startFrame)||!Number.isInteger(s.endFrame)||s.startFrame<0||s.endFrame<=s.startFrame||s.endFrame>Math.max(s.clip.R.length,s.clip.L.length)||!Number.isInteger(s.transitionFrames)||s.transitionFrames<0||s.transitionFrames>300)throw Error('Invalid draft selection');}
  name=String(saved.name||'Sequence').slice(0,100);
  }}catch{segments=[];restorationError=true;}
  function persist(){
@@ -72,7 +76,7 @@ export async function createSequenceEditor(host,{getSources,getEdited,onPreview,
  function add(source){
   if(segments.length>=50){status=en()?'Use at most 50 clips.':'動作は50個までです。';failed=true;updateStatus();return;}
   const clip=validateRecording({format:'augmented-arms-motion',version:1,fps:30,...structuredClone(source.clip)});
-  segments.push({sourceName:source.name,clip,startFrame:0,endFrame:Math.max(clip.R.length,clip.L.length),transitionFrames:15});
+  segments.push({sourceName:source.name,clip,startFrame:0,endFrame:Math.max(clip.R.length,clip.L.length),transitionFrames:15,transitionMode:'overlap'});
   dirty=true;status='';failed=false;persist();render();
  }
  function edit(index,field,value,input){
@@ -116,14 +120,17 @@ export async function createSequenceEditor(host,{getSources,getEdited,onPreview,
     element('button',{text:'↓','aria-label':t('down'),disabled:busy||index===segments.length-1,onclick:()=>move(index,1)}),
     element('button',{text:t('remove'),disabled:busy,onclick:()=>{segments.splice(index,1);dirty=true;status='';persist();render();}}));
    row.append(controls);
+   const mode=element('select',{'data-field':'transitionMode','aria-label':t('mode'),disabled:busy||index===segments.length-1,onchange:e=>{s.transitionMode=e.target.value;dirty=true;status='';persist();render();}},
+    element('option',{value:'insert',text:t('insert')}),element('option',{value:'overlap',text:t('overlap')}));
+   mode.value=s.transitionMode??'insert';row.append(element('label',{className:'sequence-mode',text:t('mode')},mode));
    const fields=element('div',{className:'sequence-fields'});
    for(const [field,key]of [['startFrame','start'],['endFrame','end'],['transitionFrames','join']]){
-    const input=element('input',{type:'number',value:seconds(field==='transitionFrames'&&index===segments.length-1?0:s[field]),min:0,max:field==='transitionFrames'?10:seconds(Math.max(s.clip.R.length,s.clip.L.length)),step:field==='transitionFrames'?.1:.0333333333,'aria-label':t(key),'data-field':field,disabled:busy||(field==='transitionFrames'&&index===segments.length-1),oninput:e=>edit(index,field,e.target.value,e.target),onchange:e=>{edit(index,field,e.target.value,e.target);if(!e.target.hasAttribute('data-invalid'))e.target.value=seconds(s[field]);}});
-    fields.append(element('label',{text:t(key)},input));
+    const input=element('input',{type:'number',value:seconds(field==='transitionFrames'&&index===segments.length-1?0:s[field]),min:0,max:field==='transitionFrames'?10:seconds(Math.max(s.clip.R.length,s.clip.L.length)),step:field==='transitionFrames'?.1:.0333333333,'aria-label':t(field==='transitionFrames'&&s.transitionMode==='overlap'?'overlapTime':key),'data-field':field,disabled:busy||(field==='transitionFrames'&&index===segments.length-1),oninput:e=>edit(index,field,e.target.value,e.target),onchange:e=>{edit(index,field,e.target.value,e.target);if(!e.target.hasAttribute('data-invalid'))e.target.value=seconds(s[field]);}});
+    fields.append(element('label',{text:t(field==='transitionFrames'&&s.transitionMode==='overlap'?'overlapTime':key)},input));
    }
    row.append(fields);
    if(index<segments.length-1){
-    row.append(element('button',{text:t('jump'),'data-sequence-join':'',disabled:busy||dirty||!recording||!onSeek,onclick:()=>onSeek(Math.max(0,(recording.composition.segments[index].outputEndFrame-15)/30))}));
+    row.append(element('button',{text:t('jump'),'data-sequence-join':'',disabled:busy||dirty||!recording||!onSeek,onclick:()=>onSeek(Math.max(0,((recording.composition.segments[index].joinStartFrame??recording.composition.segments[index].outputEndFrame)-15)/30))}));
    }
    list.append(row);
   });

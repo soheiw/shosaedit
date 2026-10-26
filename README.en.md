@@ -98,17 +98,26 @@ Edits are baked into the saved samples. On first selection, the saved motion ope
 
 ## Joining separate recordings
 
+Click each panel heading to collapse or expand it; this browser remembers the state. The timeline, playback controls and loop toggle stay below the fixed 3D view.
+
+Recording buttons cover Motion 1–9. Slots 4–9 start empty. Choose a slot in **Import recording into**, then open a Motion JSON or paired CSV files to register it persistently in this browser.
+
 Use **Motion sequence** to arrange multiple recordings into one motion.
 
 1. Import each Motion JSON or paired right/left CSV using **Open motion file**. Original recordings, generated motions and saved motions are also available.
 2. Select a source and click **Add original** for raw data, or **Add current edited motion** to bake the current speed, delay and smoothing into a copied segment.
-3. Use ↑ / ↓ to reorder. Set start and exclusive end times in seconds. **Transition to next** inserts 0–10 seconds between clips; zero makes a direct cut. No transition follows the last clip.
+3. Use ↑ / ↓ to reorder. Set start and exclusive end times in seconds. Choose **Overlap blend** or **Insert transition**, then set 0–10 seconds; zero makes a direct cut. No transition follows the last clip.
 4. Click **Preview sequence**. **Before join (original)** seeks about 0.5 seconds before a join on the original sequence clock. Independent speed or delay edits may place edited-arm joins at other elapsed times.
 5. Enter a name and click **Save sequence** to add it to the motion list and download a Motion JSON. Existing right/left CSV and ZIP exports work on the result.
 
 The arrangement, trims and copied source data are saved as a draft in this browser and restored after reload. Drafts do not carry across browsers or ports, and clearing site data removes them. Exported JSON contains the flattened sequence; keep original capture files separately.
 
 Sources must share motor columns and reference poses. Calibration alignment, IK and collision avoidance are not automatic. Joins interpolate every motor channel with quintic smoothstep; recorded boundary velocities are not necessarily continuous, so inspect and adjust trims and transition time in the preview. Original recordings remain unchanged. Limits: 50 clips and 10,000 output frames (about 333 seconds).
+
+
+Choose **Overlap blend** or **Insert transition** for each join. Overlap blends the moving tail of one clip with the moving head of the next using quintic smoothstep; total duration shrinks by the overlap length. Set the shared capture interval manually; phase alignment is not automatic. One-frame overlaps and conflicting incoming/outgoing overlaps are rejected.
+
+Set each motor's allowable torque in N·m in the 14-axis **Estimated loads** table. The warning percentage defaults to 80% and is editable. Exceeding a motor limit produces ERROR; exceeding the warning percentage produces WARNING. A stage banner reports the whole edited motion and recalculates after timing or smoothing edits. Saving, CSV/ZIP export and sequence saving recheck the exact output at 30 Hz and reject any configured motor overload. Warnings allow output. Unset limits remain unassessed and do not block output. Finger drives are excluded. These model estimates include mass and inertia; they do not establish hardware safety.
 
 ![Ordering, trimming and transitions between separate recordings](docs/images/sequence.en.jpg)
 
