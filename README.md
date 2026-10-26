@@ -116,6 +116,8 @@ TouchDesignerでは [OSC In CHOP](https://derivative.ca/UserGuide/OSC_In_CHOP) �
 
 各アドレスは単一の数値を持ちます。OSC bundleは左右1パケットずつ・各1400バイト以下。速度・時間差・平滑化を適用した両腕を送ります。表示用のCAD姿勢・入力の絞り込みは適用しません。UDP送信はモーター制御ではなく、負荷ERROR中もプレビュー同様に送信します。実機へ接続する場合の安全判定は別途必要です。
 
+配布モーションはすべて `motion-data/` に収録しています。元のMotion 1〜3は `motions.json`、作成済み動作は `*.motion.json`、一覧は `generated-motions.json` です。
+
 ## 複数の動作を連結する
 
 各編集パネルは見出しをクリックして折り畳めます。開閉状態はこのブラウザに保存されます。再生スライダー・再生操作・ループ切り替えは3D表示下に固定表示します。
@@ -241,7 +243,7 @@ npm test
 | `public-hand.js` | 公開許可済みの手の形状（link_7） |
 | `mass-properties.json` | リンク別の質量・重心・慣性（形状を含まない） |
 | `private-model/README.txt` | 別途入手するCADの配置案内 |
-| `motions.json` / `*.motion.json` | 元記録と作成済み動作 |
+| `motion-data/motions.json` / `motion-data/*.motion.json` | 元記録と作成済み動作 |
 | `tests/` | 数値・設定の検査 |
 
 過去の動作再点検の範囲は[動作の再監査記録](docs/motion-reaudit.md)、所作の設計背景は[所作の研究整理](docs/shosa-research.md)を参照してください。

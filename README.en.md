@@ -124,6 +124,8 @@ Each address has one numeric argument. Frames use two OSC bundles (one per arm),
 
 Relay checks: `python3 tests/test_osc_bridge.py` validates OSC contents, loopback UDP reception and same-origin HTTP restrictions.
 
+All bundled motion data lives in `motion-data/`: `motions.json` contains original Motion 1–3, `*.motion.json` contains generated motions, and `generated-motions.json` is the catalog.
+
 ## Joining separate recordings
 
 Use **Motion sequence** to arrange multiple recordings into one motion.
@@ -245,7 +247,7 @@ Checks cover independent playback clocks, delay, CSV sampling, LINK switching an
 | `public-hand.js` | Publicly authorized wrist-distal CAD (link_7) |
 | `mass-properties.json` | Aggregate link mass, COM, and inertia without surface geometry |
 | `private-model/README.txt` | Instructions for separately obtained CAD |
-| `motions.json` / `*.motion.json` | Original recordings and generated motions |
+| `motion-data/motions.json` / `motion-data/*.motion.json` | Original recordings and generated motions |
 | `tests/` | Numerical and settings checks |
 
 See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlier motion reviews and the [gesture research notes](docs/shosa-research.md) for the design background. These supporting documents are currently in Japanese.

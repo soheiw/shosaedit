@@ -13,8 +13,8 @@ import {defaultPoints} from '../speed-curve.js';
 import {createSimpleModel,simplePivots} from '../simple-model.js';
 
 const root=new URL('../',import.meta.url),read=name=>fs.readFileSync(new URL(name,root),'utf8');
-const motions=JSON.parse(read('motions.json'));
-const clips=[...Object.entries(motions.clips),...JSON.parse(read('generated-motions.json')).map(e=>[e.id,JSON.parse(read(e.file))])];
+const motions=JSON.parse(read('motion-data/motions.json'));
+const clips=[...Object.entries(motions.clips),...JSON.parse(read('motion-data/generated-motions.json')).map(e=>[e.id,JSON.parse(read('motion-data/'+e.file))])];
 assert.equal(clips.length,20,'3 original and 17 generated motions must be covered');
 const hash=value=>createHash('sha256').update(value).digest('hex');
 assert.equal(hash(JSON.stringify(clips.map(([id,c])=>[id,c.R,c.L]))),'47df1282f1718586f272f74606669980fea575248c7feb542aaef23c6b5acb37','recorded/generated joint data changed during geometry replacement');
