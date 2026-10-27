@@ -1,0 +1,18 @@
+{
+  "motion-data/original-csv/Motion1R.csv": "946911ca380237ba689f72ecf0ccc2cddf4451e313569495d4bf41c952803399",
+  "motion-data/original-csv/Motion1L.csv": "bf153944e984fcbe525ee52531e5dbb40c77ba47c10a883f62ac1cf71a0516d7",
+  "motion-data/original-csv/Motion2R.csv": "0ef41cb35f6676268de317e24e96cef244b06f035006928143668d136a71dfcf",
+  "motion-data/original-csv/Motion2L.csv": "eef40878ec37da07e5812e34d50e9982e39c6096b44af5f677405144b88e8852",
+  "motion-data/original-csv/Motion3R.csv": "59d25e3680ca5f1ea2815cb79283981d97f2dd71747a5aa86791ca2e90731919",
+  "motion-data/original-csv/Motion3L.csv": "3a1d112296ed4ce68a726a077bd8e10bd46c72414e67048aad28676e32366a12",
+  "motion-data/original-csv/COM14/marka.csv": "2bb967a25c877f872bcf5deb0dce3da9f23764d334f567dc1d0348a758087ff4",
+  "motion-data/original-csv/COM14/markb.csv": "b44187470d39f1aa4c674f745002e46140637516363d5b2fdc722c98033a2b45",
+  "motion-data/original-csv/COM14/markc.csv": "8031b9580e3b3672679174d6d9aeb8c0f64a8d998f4259ee07e98ed4be60fe20",
+  "motion-data/original-csv/COM15/marka.csv": "c929d2f0468adece92a2d9a2387e6f94e8af34ebaea28d9c0c7a548a98861d49",
+  "motion-data/original-csv/COM15/markb.csv": "c8b8335bd0cfd1a9bdcf9e55fefdb175656cbfb7664933e45d38586bc67df6e2",
+  "motion-data/original-csv/COM15/markc.csv": "7474b22fac4f5c834fb750cf527bc2aee4b4fed0033016b8b9f02c816ba15f3a",
+  "motion-data/motions.json": "544a030aea208c80ee56351df7c71f37d9d1cc33474e8f3116e74fd9eb06cd20",
+  "motion-data/marka.motion.json": "81bd5081679b24fc827275e901608b27309ddb0a8911ce06fe513aef53041cd9",
+  "motion-data/markb.motion.json": "fb371d7068d72176b5264489f8941c85635317fe21b8ca3da6f6e3c42d2c0fd4",
+  "motion-data/markc.motion.json": "d10f4627901453bcad900e2a109accf9242a99a281022a9d2167e254cef84d1c"
+}

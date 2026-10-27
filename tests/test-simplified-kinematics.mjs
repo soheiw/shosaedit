@@ -36,6 +36,9 @@ const endpointIntervals={
 const endpointAdjustment=(id,frame)=>endpointIntervals[id]?.find(([first,last])=>frame>=first&&frame<=last)?.[2]??0;
 const legacyClips=clips.filter(([id])=>!id.startsWith('recorded-')).map(([id,c])=>[id,{...c,...Object.fromEntries(['R','L'].map(side=>[side,c[side].map((row,frame)=>row.map((v,i)=>{
  if(!converted(c))return v-(side==='R'&&c.generation?.rightWristReference===3025&&i===5?1650:0);
+ // Generated tendon channels are independently checked below; normalize only
+ // those newly authored channels to the historical fixed-finger baseline.
+ if(i>=7&&c.generation?.fingerMotionVersion==='authored-fingers-v1')return legacyZero[side][i];
  const adjustment=side==='R'&&i===2?endpointAdjustment(id,frame):0;
  if(adjustment)assert.equal(v,0,`${id}:${frame} documented endpoint clamp`);
  return (v-C[side][i])*(side==='L'&&[0,6].includes(i)?-1:1)+legacyZero[side][i]-adjustment;
@@ -43,6 +46,26 @@ const legacyClips=clips.filter(([id])=>!id.startsWith('recorded-')).map(([id,c])
 const hash=value=>createHash('sha256').update(value).digest('hex');
 assert.equal(hash(JSON.stringify(legacyClips.map(([id,c])=>[id,c.R,c.L]))),'47df1282f1718586f272f74606669980fea575248c7feb542aaef23c6b5acb37','legacy data changed beyond the explicit reference/sign conversion and frozen endpoint exception');
 assert.equal(clips.filter(([,c])=>converted(c)).length,17,'all authored motions use the accepted markc interpretation');
+let authoredFingerChannels=0;
+for(const [id,clip]of clips.filter(([,c])=>converted(c))){
+ assert.equal(clip.generation.fingerMotionVersion,'authored-fingers-v1',`${id}: fingers regenerated`);
+ assert.equal(clip.fps,30,`${id}: frame rate remains30Hz`);
+ for(const side of ['R','L']){
+  const rows=clip[side];
+  assert.deepEqual(rows[0],C[side],`${id}/${side}: start reference stays exact`);
+  assert.deepEqual(rows.at(-1),C[side],`${id}/${side}: end reference stays exact`);
+  for(let motor=7;motor<(side==='R'?9:8);motor++){
+   const values=rows.map(r=>r[motor]);
+   assert.ok(values.every(v=>Number.isInteger(v)&&v>=0&&v<=4095),`${id}/${side}${motor+1}: bounded integer counts`);
+   assert.ok(Math.max(...values)-Math.min(...values)>1,`${id}/${side}${motor+1}: nonconstant authored finger channel`);
+   const maxStep=Math.max(...values.slice(1).map((v,i)=>Math.abs(v-values[i])));
+   assert.ok(maxStep<100,`${id}/${side}${motor+1}: no sharp finger jump (${maxStep}ticks)`);
+   authoredFingerChannels++;
+  }
+ }
+}
+assert.equal(authoredFingerChannels,51,'all17 clips author bothright and oneleft tendon channel');
+
 const recordingReferences=JSON.parse(read('recording-references.json'));
 for(const [id,c] of clips)motions.clips[id]=c;
 const source=read('app.js');
@@ -169,4 +192,4 @@ for(const [id,clip]of clips){
  }
 }
 assert.equal(exportedHash.digest('hex'),'09c1cdcd8b6935210fda3530e75a6a1961c8d39a0a8bc4f35f902298658499ff','CSV samples/timing changed during geometry replacement');
-console.log(`PASS: ${clips.length} motions, ${poses} complete poses across both arms for markers and actual simplified meshes, ${matrices} full link/mesh matrices, max error ${maxError}; full hand transforms and original/edited CSV fingerprints retained after explicit authored reference rebase; ${conversionFrames} converted arm frames, ${clippedFrames} bounded endpoint frames, maximum endpoint displacement ${maxEndpointPositionMm}mm and basis change ${maxEndpointBasisAngle*180/Math.PI}deg. Numerical check only; visual/hardware checks are separate.`);
+console.log(`PASS: ${clips.length} motions, ${poses} complete poses across both arms for markers and actual simplified meshes, ${matrices} full link/mesh matrices, max error ${maxError}; arm transforms and legacy-normalized CSV fingerprints retained after explicit authored reference rebase; ${authoredFingerChannels} separately validated new finger channels; ${conversionFrames} converted arm frames, ${clippedFrames} bounded endpoint frames, maximum endpoint displacement ${maxEndpointPositionMm}mm and basis change ${maxEndpointBasisAngle*180/Math.PI}deg. Numerical check only; visual/hardware checks are separate.`);

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {applyAxisInterpretation,interpretedConfiguration,matchingReferenceProfile,setRecordingReference} from '../recording-interpretation.js';
@@ -23,3 +24,12 @@ const explicit=structuredClone(recording);explicit.R[0][0]+=400;explicit.referen
 assert.equal(matchingReferenceProfile(explicit,profiles).id,'markc-video-reference');
 explicit.referenceProfile='common';assert.equal(matchingReferenceProfile(explicit,profiles),null);
 explicit.referenceProfile='unknown';assert.equal(matchingReferenceProfile(explicit,profiles),null);
+
+// Frozen before authoring finger motion. Original recorded bytes must never be
+// changed by a generator or geometry/interpretation correction.
+const originalHashes=JSON.parse(fs.readFileSync(new URL('./original-recording-sha256.json',import.meta.url)));
+for(const [file,expected] of Object.entries(originalHashes)){
+ const actual=createHash('sha256').update(fs.readFileSync(new URL('../'+file,import.meta.url))).digest('hex');
+ assert.equal(actual,expected,`${file}: original recording bytes changed`);
+}
+console.log(`PASS ${Object.keys(originalHashes).length} frozen original recording files remain byte-identical`);

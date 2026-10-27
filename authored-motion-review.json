@@ -712,5 +712,634 @@
     "cables",
     "full arm collisions",
     "left palm absolute axial calibration"
-  ]
+  ],
+  "fingerMotionVersion": "authored-fingers-v1",
+  "fingerReview": {
+    "visualFrames": [
+      {
+        "id": "bird-flap",
+        "side": "R",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "bird-flap",
+        "side": "R",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "bird-flap",
+        "side": "R",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "hand-waves",
+        "side": "R",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "hand-waves",
+        "side": "R",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "hand-waves",
+        "side": "R",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "alternating-waves",
+        "side": "R",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "alternating-waves",
+        "side": "R",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "alternating-waves",
+        "side": "R",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "dab-pose",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "dab-pose",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "dab-pose",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "bird-flap-back-up",
+        "side": "R",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "bird-flap-back-up",
+        "side": "R",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "bird-flap-back-up",
+        "side": "R",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "hand-waves-back-up",
+        "side": "R",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "hand-waves-back-up",
+        "side": "R",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "hand-waves-back-up",
+        "side": "R",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "alternating-waves-back-up",
+        "side": "R",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "alternating-waves-back-up",
+        "side": "R",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "alternating-waves-back-up",
+        "side": "R",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "dab-pose-back-up",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "dab-pose-back-up",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "dab-pose-back-up",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "banzai",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "banzai",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "banzai",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "banzai-natural",
+        "side": "R",
+        "phase": "rise",
+        "frame": 48
+      },
+      {
+        "id": "banzai-natural",
+        "side": "R",
+        "phase": "hold",
+        "frame": 152
+      },
+      {
+        "id": "banzai-natural",
+        "side": "R",
+        "phase": "return",
+        "frame": 276
+      },
+      {
+        "id": "surrender",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "surrender",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "surrender",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "present",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "present",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "present",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "shrug",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "shrug",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "shrug",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "victory",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "victory",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "victory",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "guard",
+        "side": "R",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "guard",
+        "side": "R",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "guard",
+        "side": "R",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "bow-draw",
+        "side": "R",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "bow-draw",
+        "side": "R",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "bow-draw",
+        "side": "R",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "hug",
+        "side": "R",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "hug",
+        "side": "R",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "hug",
+        "side": "R",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "bird-flap",
+        "side": "L",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "bird-flap",
+        "side": "L",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "bird-flap",
+        "side": "L",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "hand-waves",
+        "side": "L",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "hand-waves",
+        "side": "L",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "hand-waves",
+        "side": "L",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "alternating-waves",
+        "side": "L",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "alternating-waves",
+        "side": "L",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "alternating-waves",
+        "side": "L",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "dab-pose",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "dab-pose",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "dab-pose",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "bird-flap-back-up",
+        "side": "L",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "bird-flap-back-up",
+        "side": "L",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "bird-flap-back-up",
+        "side": "L",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "hand-waves-back-up",
+        "side": "L",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "hand-waves-back-up",
+        "side": "L",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "hand-waves-back-up",
+        "side": "L",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "alternating-waves-back-up",
+        "side": "L",
+        "phase": "rise",
+        "frame": 54
+      },
+      {
+        "id": "alternating-waves-back-up",
+        "side": "L",
+        "phase": "hold",
+        "frame": 172
+      },
+      {
+        "id": "alternating-waves-back-up",
+        "side": "L",
+        "phase": "return",
+        "frame": 312
+      },
+      {
+        "id": "dab-pose-back-up",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "dab-pose-back-up",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "dab-pose-back-up",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "banzai",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "banzai",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "banzai",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "banzai-natural",
+        "side": "L",
+        "phase": "rise",
+        "frame": 48
+      },
+      {
+        "id": "banzai-natural",
+        "side": "L",
+        "phase": "hold",
+        "frame": 152
+      },
+      {
+        "id": "banzai-natural",
+        "side": "L",
+        "phase": "return",
+        "frame": 276
+      },
+      {
+        "id": "surrender",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "surrender",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "surrender",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "present",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "present",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "present",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "shrug",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "shrug",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "shrug",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "victory",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "victory",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "victory",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "guard",
+        "side": "L",
+        "phase": "rise",
+        "frame": 36
+      },
+      {
+        "id": "guard",
+        "side": "L",
+        "phase": "hold",
+        "frame": 115
+      },
+      {
+        "id": "guard",
+        "side": "L",
+        "phase": "return",
+        "frame": 208
+      },
+      {
+        "id": "bow-draw",
+        "side": "L",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "bow-draw",
+        "side": "L",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "bow-draw",
+        "side": "L",
+        "phase": "return",
+        "frame": 260
+      },
+      {
+        "id": "hug",
+        "side": "L",
+        "phase": "rise",
+        "frame": 45
+      },
+      {
+        "id": "hug",
+        "side": "L",
+        "phase": "hold",
+        "frame": 144
+      },
+      {
+        "id": "hug",
+        "side": "L",
+        "phase": "return",
+        "frame": 260
+      }
+    ],
+    "numericQA": "All51 finger channels vary; first7 arm channels and frame counts unchanged; endpoints retained; signed CSV originals immutable; max encoder step87ticks.",
+    "scope": "Actual detailed CAD both hands rise/hold/return. Tendon response, physical playback, force limits and fingers torque remain unverified.",
+    "bowStringUpdate": {
+      "rightPhasesSeconds": {
+        "catchBy": 1.8,
+        "tightenBy": 2.8,
+        "holdUntil": 6.7,
+        "releaseBy": 9.0
+      },
+      "visualScope": "Initial/open, tightened/held, release shapes and live two-arm playback inspected after the bow-specific change. Earlier bow rise/hold/return entries predate this timing refinement; numerical tests cover every revised frame.",
+      "armChannelsUnchanged": true
+    }
+  }
 }

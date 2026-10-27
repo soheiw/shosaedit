@@ -6,7 +6,7 @@
   "description": "Local robot-arm motion preview and editing",
   "scripts": {
     "start": "python3 launch.py",
-    "test": "node tests/test-finger-preview.mjs && node tests/test-recording-interpretation.mjs && node tests/test-shared-calibration.mjs && node tests/test-export-identity.mjs && node tests/test-wrist-reference.mjs && node tests/test-arm-timing.mjs && node tests/test_speed_editor_independent.mjs && node tests/test-load-delay.mjs && node tests/test-load-panel-delay.mjs && node tests/test-load-physics.mjs && node tests/test-motor-loads.mjs && node tests/test-model-loader.mjs && node tests/test-simplified-kinematics.mjs && node tests/test-shareable-mass.mjs && node tests/test-motion-sequence.mjs && node tests/test-live-torque.mjs"
+    "test": "node tests/test-live-position.mjs && node tests/test-finger-preview.mjs && node tests/test-recording-interpretation.mjs && node tests/test-shared-calibration.mjs && node tests/test-export-identity.mjs && node tests/test-wrist-reference.mjs && node tests/test-arm-timing.mjs && node tests/test_speed_editor_independent.mjs && node tests/test-load-delay.mjs && node tests/test-load-panel-delay.mjs && node tests/test-load-physics.mjs && node tests/test-motor-loads.mjs && node tests/test-model-loader.mjs && node tests/test-simplified-kinematics.mjs && node tests/test-shareable-mass.mjs && node tests/test-motion-sequence.mjs && node tests/test-live-torque.mjs"
   },
   "engines": {
     "node": ">=20"
