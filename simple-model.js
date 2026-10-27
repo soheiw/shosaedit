@@ -24,7 +24,7 @@ export function createSimpleModel(){
  for(let group=1;group<=6;group++)add(group,new THREE.SphereGeometry(group>=6?8:11,10,6).translate(...simplePivots[group]),'joint');
  // Publicly authorized hand CAD stays fixed to link 7.
  if(!handBin){const text=atob(publicHand.base64);handBin=new Uint8Array(text.length);for(let i=0;i<text.length;i++)handBin[i]=text.charCodeAt(i);}
- for(const body of publicHand.bodies){const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(handBin.buffer,body.positionOffset,body.vertexCount*3),3));geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(handBin.buffer,body.indexOffset,body.indexCount),1));add(7,geometry,'hand');bodies[bodies.length-1].source='public-hand';}
+ for(const body of publicHand.bodies){const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(handBin.buffer,body.positionOffset,body.vertexCount*3),3));geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(handBin.buffer,body.indexOffset,body.indexCount),1));add(7,geometry,'hand');bodies[bodies.length-1].source='public-hand';bodies[bodies.length-1].publicHandId=body.id;}
  let offset=0;for(const body of bodies){body.positionOffset=offset;offset+=body.vertexCount*3*4;body.indexOffset=offset;offset+=body.indexCount*4;}
  const bin=new ArrayBuffer(offset);bodies.forEach((body,i)=>{new Float32Array(bin,body.positionOffset,body.vertexCount*3).set(geometries[i].attributes.position.array);new Uint32Array(bin,body.indexOffset,body.indexCount).set(geometries[i].index.array);geometries[i].dispose();});
  return {model:{name:'ShosaEdit simple primitives',kind:'simple',units:'mm',bodies,fingersFixed:true},bin};

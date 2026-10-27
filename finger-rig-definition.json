@@ -1,0 +1,390 @@
+{
+  "R": {
+    "chains": [
+      {
+        "id": "thumb",
+        "order": 0,
+        "maxDriverDegrees": 45,
+        "fourBar": {
+          "A": [
+            41.6886131275464,
+            -44.835483847749224,
+            13.590055592358334
+          ],
+          "B": [
+            49.57439255261752,
+            -41.74581904057226,
+            8.273786602033326
+          ],
+          "C": [
+            67.71980663706675,
+            -17.699836769324627,
+            19.068393985617398
+          ],
+          "D": [
+            65.50468434811559,
+            -13.274952903928781,
+            27.757961687367008
+          ],
+          "axis": [
+            0.5816558534009796,
+            -0.6552824401132425,
+            0.48195579868242405
+          ]
+        },
+        "parts": {
+          "outer": {
+            "publicIds": [
+              "public-hand-48",
+              "public-hand-49"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a350",
+              "link_7:1/\u30dc\u30c7\u30a351"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a350",
+              "\u30dc\u30c7\u30a351"
+            ]
+          },
+          "inner": {
+            "publicIds": [
+              "public-hand-50"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a352"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a352"
+            ]
+          },
+          "tip": {
+            "publicIds": [
+              "public-hand-51"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a353"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a353"
+            ]
+          }
+        },
+        "evidence": {
+          "rootPinSource": 17,
+          "circleFitted": true,
+          "limits": "70degdriver is provisional visual envelope, not measured hardwarelimit"
+        }
+      },
+      {
+        "id": "straight-plus-x",
+        "order": 1,
+        "maxDriverDegrees": 45,
+        "fourBar": {
+          "A": [
+            19.837026231317363,
+            -4.6915828596765605,
+            0.6607561273151727
+          ],
+          "B": [
+            20.321221091538185,
+            0.28539540730596497,
+            -8.000138120175201
+          ],
+          "C": [
+            24.678550857323888,
+            45.073841811923366,
+            -8.000703802079547
+          ],
+          "D": [
+            25.16278267733817,
+            50.05119998398941,
+            0.660499999999967
+          ],
+          "axis": [
+            0.9953009583457252,
+            -0.09682975945483477,
+            -1.0552621798560805e-18
+          ]
+        },
+        "parts": {
+          "outer": {
+            "publicIds": [
+              "public-hand-60",
+              "public-hand-61"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a362",
+              "link_7:1/\u30dc\u30c7\u30a363"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a362",
+              "\u30dc\u30c7\u30a363"
+            ]
+          },
+          "inner": {
+            "publicIds": [
+              "public-hand-62"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a364"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a364"
+            ]
+          },
+          "tip": {
+            "publicIds": [
+              "public-hand-75",
+              "public-hand-65",
+              "public-hand-73",
+              "public-hand-74"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a377",
+              "link_7:1/\u30dc\u30c7\u30a367",
+              "link_7:1/\u30dc\u30c7\u30a375",
+              "link_7:1/\u30dc\u30c7\u30a376"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a377",
+              "\u30dc\u30c7\u30a367",
+              "\u30dc\u30c7\u30a375",
+              "\u30dc\u30c7\u30a376"
+            ]
+          }
+        },
+        "evidence": {
+          "rootPinSource": 14,
+          "circleFitted": true,
+          "limits": "70degdriver is provisional visual envelope, not measured hardwarelimit"
+        }
+      },
+      {
+        "id": "straight-middle",
+        "order": 2,
+        "maxDriverDegrees": 45,
+        "fourBar": {
+          "A": [
+            -13.213961607023391,
+            -2.5313284084399914,
+            1.5990278162540061
+          ],
+          "B": [
+            -14.15056914397763,
+            2.4648982053209223,
+            -7.013450323496576
+          ],
+          "C": [
+            -15.787436147949057,
+            47.43497478567992,
+            -6.869145281792767
+          ],
+          "D": [
+            -15.21460659307537,
+            52.43120860536604,
+            1.7746872603757122
+          ],
+          "axis": [
+            0.995531784417463,
+            0.03651582226883899,
+            -0.08708077249664661
+          ]
+        },
+        "parts": {
+          "outer": {
+            "publicIds": [
+              "public-hand-54",
+              "public-hand-55"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a356",
+              "link_7:1/\u30dc\u30c7\u30a357"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a356",
+              "\u30dc\u30c7\u30a357"
+            ]
+          },
+          "inner": {
+            "publicIds": [
+              "public-hand-53"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a355"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a355"
+            ]
+          },
+          "tip": {
+            "publicIds": [
+              "public-hand-52"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a354"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a354"
+            ]
+          }
+        },
+        "evidence": {
+          "rootPinSource": 15,
+          "circleFitted": true,
+          "limits": "70degdriver is provisional visual envelope, not measured hardwarelimit"
+        }
+      },
+      {
+        "id": "straight-minus-x",
+        "order": 3,
+        "maxDriverDegrees": 45,
+        "fourBar": {
+          "A": [
+            -47.801678855517146,
+            -9.905450732389811,
+            6.004167982424627
+          ],
+          "B": [
+            -50.298322571282846,
+            -5.095333379131317,
+            -2.3991005822401785
+          ],
+          "C": [
+            -57.20438258598629,
+            29.203151454541207,
+            -1.181453727513163
+          ],
+          "D": [
+            -56.69766438089556,
+            34.18887675813092,
+            7.471305351918679
+          ],
+          "axis": [
+            0.9645326669460327,
+            0.20031322550708625,
+            -0.17190504960855632
+          ]
+        },
+        "parts": {
+          "outer": {
+            "publicIds": [
+              "public-hand-56",
+              "public-hand-59"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a358",
+              "link_7:1/\u30dc\u30c7\u30a361"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a358",
+              "\u30dc\u30c7\u30a361"
+            ]
+          },
+          "inner": {
+            "publicIds": [
+              "public-hand-57"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a359"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a359"
+            ]
+          },
+          "tip": {
+            "publicIds": [
+              "public-hand-58"
+            ],
+            "privateIds": [
+              "link_7:1/\u30dc\u30c7\u30a360"
+            ],
+            "privateNames": [
+              "\u30dc\u30c7\u30a360"
+            ]
+          }
+        },
+        "evidence": {
+          "rootPinSource": 16,
+          "circleFitted": true,
+          "limits": "70degdriver is provisional visual envelope, not measured hardwarelimit"
+        }
+      }
+    ],
+    "fingerCount": 4,
+    "status": "Mesh-derived crossed-fourbar rig; motor-to-angle and finger labels beyondthumb provisional"
+  },
+  "L": {
+    "moving": [
+      {
+        "name": "opposing-hook",
+        "privateNames": [
+          "\u30dc\u30c7\u30a357"
+        ],
+        "privateIds": [
+          "link_7:1/\u30dc\u30c7\u30a357"
+        ],
+        "publicIds": [
+          "public-left-hand-23"
+        ],
+        "pivot": [
+          0.94318205,
+          -42.49496246,
+          -11.8242549
+        ],
+        "axis": [
+          0.92541658,
+          0.17364818,
+          0.33682409
+        ],
+        "closedAngleDeg": 0,
+        "openAngleDeg": -50
+      },
+      {
+        "privateNames": [
+          "\u30dc\u30c7\u30a355"
+        ],
+        "publicIds": [
+          "public-left-hand-21"
+        ],
+        "pivot": [
+          3.2189058,
+          -35.91977682,
+          5.22444567
+        ],
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "closedAngleDeg": 0,
+        "openAngleDeg": 25
+      },
+      {
+        "privateNames": [
+          "\u30dc\u30c7\u30a356"
+        ],
+        "publicIds": [
+          "public-left-hand-22"
+        ],
+        "pivot": [
+          -31.56370069,
+          -35.91970461,
+          2.09086717
+        ],
+        "axis": [
+          0.93969262,
+          0,
+          0.34202014
+        ],
+        "closedAngleDeg": 0,
+        "openAngleDeg": 25
+      }
+    ],
+    "input": {
+      "open": 494,
+      "closed": 2820
+    },
+    "status": "Approximate coupled blade visualization; angles not calibrated."
+  }
+}

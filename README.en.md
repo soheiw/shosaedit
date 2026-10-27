@@ -276,3 +276,8 @@ All 17 bundled authored motions use the video-aligned markc reference and correc
 Motion JSON retains `referenceProfile` through smoothing and named saves. Headerless CSV cannot carry it. If an edited CSV reloads with the wrong pose, select markc under the joint calibration panel's Model reference selector. Previously saved/downloaded authored files are not automatically replaced.
 
 Three back-of-hand-up wave variants have an explicit right joint 3 endpoint correction of at most 2 ticks (0.176°), keeping counts within 0–4095. This numeric range does not establish physical joint limits or safety. Hardware calibration and collisions remain unverified.
+### Finger preview
+
+The Finger preview panel animates the hand from the recording: right columns 8/9 drive two tendon sequences; left column 8 drives the hook. Both detailed and simplified displays support original/edited comparison. The panel can disable articulation, swap the right input assignment, and adjust the bend amount for each hand.
+
+The four finger mechanisms present in the right CAD use connected four-bar linkages. Tendon response, slack, and the coupled angles of the three left hook blades remain provisional. This is not a physically calibrated simulation. Finger loads are excluded, and finger joints have not been added to URDF. Display settings do not rewrite CSV values.

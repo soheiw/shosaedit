@@ -1,0 +1,6 @@
+export function createFingerEditor(host,settings,onChange){
+ host.innerHTML=`<details open><summary>指の開閉 / Finger preview</summary><label><input id="finger-enabled" type="checkbox"> 指を動かす / Animate fingers</label><p class="curve-help">映像からの暫定モデルです。右手は2モーターの順次駆動、左手は1モーターのフック開閉。表示だけに適用し、CSVと負荷計算は変更しません。</p><label>右手の対応 / Right mapping <select id="finger-swap"><option value="normal">第8列＝親指側 / Column 8 thumb-side</option><option value="swap">第9列＝親指側 / Column 9 thumb-side</option></select></label><label>右の曲げ量 / Right bend <input id="finger-right-gain" type="range" min="0" max="1" step="0.01"></label><label>左の曲げ量 / Left bend <input id="finger-left-gain" type="range" min="0" max="1" step="0.01"></label><p class="curve-help">紐の遊び・指ごとの曲がり量・左フックの連動角度は未校正です。指用モーターの負荷は対象外です。</p></details>`;
+ const $=id=>host.querySelector('#'+id);
+ $('finger-enabled').checked=settings.enabled;$('finger-swap').value=settings.swapRight?'swap':'normal';$('finger-right-gain').value=settings.rightGain;$('finger-left-gain').value=settings.leftGain;
+ host.oninput=()=>{settings.enabled=$('finger-enabled').checked;settings.swapRight=$('finger-swap').value==='swap';settings.rightGain=+$('finger-right-gain').value;settings.leftGain=+$('finger-left-gain').value;try{localStorage.setItem('shosaedit-finger-display-v1',JSON.stringify(settings));}catch{}onChange();};
+}
