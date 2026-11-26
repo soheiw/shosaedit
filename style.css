@@ -183,3 +183,5 @@ header, main, footer { width: 100%; }
 .arm-control .arm-estop[data-state=ok]{background:#1f3a2a;color:#8be2a8}
 .arm-control .arm-estop[data-state=lost]{background:#5a2020;color:#fff}
 .arm-control .arm-estop[data-state=pressed]{background:#a32020;color:#fff;font-weight:700}
+
+.arm-control .arm-dup{margin:6px 0 0;padding:6px 8px;border-radius:6px;background:#a32020;color:#fff;font-size:12px;font-weight:700}

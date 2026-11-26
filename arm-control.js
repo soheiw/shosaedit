@@ -26,7 +26,7 @@ export async function bindArmControl({getRecording=null,validate=async()=>{},nam
 ${SIDES.map(s=>`<div class="arm-card" data-card="${s}"><div class="row"><b>${NAME[s]}</b><span data-state></span></div>
 <div class="row"><input data-port aria-label="${s} port" placeholder="/dev/cu.usbserial-…"><input data-ids aria-label="${s} IDs" placeholder="IDs"></div>
 <div class="row"><button type="button" data-connect>接続</button><button type="button" data-calibrate title="脱力して下ろした基準姿勢（肘は後ろ、親指は前）で押す">基準姿勢を保存（CALIBRATE）</button></div>
-<div class="arm-motors" data-motors></div></div>`).join('')}
+<div class="arm-motors" data-motors></div><p class="arm-dup" data-dup hidden></p></div>`).join('')}
 <hr><label for="arm-recordings">記録を再生（Recorded_movements）</label>
 <div class="row"><select id="arm-recordings" data-recordings></select><button type="button" class="primary" data-play>再生</button><button type="button" data-refresh>更新</button></div>
 <div class="row"><button type="button" class="primary" data-play-edited>編集後の動きを実機で再生</button></div>
@@ -49,6 +49,7 @@ ${SIDES.map(s=>`<div class="arm-card" data-card="${s}"><div class="row"><b>${NAM
    c.querySelector('[data-connect]').textContent=on?'切断':'接続';
    c.querySelector('[data-connect]').disabled=a.state==='connecting'||a.state==='disconnecting';
    for(const k of ['port','ids'])c.querySelector(`[data-${k}]`).disabled=a.state!=='offline'&&a.state!=='failed';
+   const dup=Object.entries(a.duplicates||{});c.querySelector('[data-dup]').textContent=dup.map(([id,m])=>`⚠ ID${id}に2台つながっています（${m.join(' と ')}）。ID${id}への指令で両方が動きます。片方のIDを変えてください。`).join(' ');c.querySelector('[data-dup]').hidden=!dup.length;
    c.querySelector('[data-motors]').innerHTML=a.ids.map(id=>{const st=a.motors[id]||'no_reply',[bg,label]=LOOK[st]||LOOK.no_reply;
     return `<span style="background:${bg}" title="ID ${id} · ${label}${a.models[id]?' · '+a.models[id]:''}">${id}</span>`;}).join('');
   }

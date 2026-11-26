@@ -71,6 +71,16 @@ START_WAIT_TIMEOUT = 3.0   # seconds a playback thread waits for the synced star
 # last goal. Healthy runs measured up to 135 ms late, so 150 ms catches a stall
 # while allowing at most ~4 frames of normal catch-up.
 MAX_FRAME_LATE = 0.15        # seconds a frame may be late before playback is stopped
+
+# ShosaEdit: read Present Current and Position during playback too. After a frame
+# is sent, read once every PLAYBACK_READ_EVERY frames, and only when at least
+# PLAYBACK_READ_SLACK seconds remain before the next frame is due, so a read never
+# delays a motion frame. Read times are logged at the end of each playback.
+PLAYBACK_READ_EVERY = 3        # 30 fps / 3 = about 10 reads a second (0 = off)
+# A read sent right after the goal sync write is lost: the motors are still taking the
+# write (measured 2026-11-26: 2/60 replies with no gap, 60/60 with 1 ms, ~17 ms each).
+PLAYBACK_READ_GAP = 0.002
+PLAYBACK_READ_SLACK = 0.027        # gap + one read (15-24 ms on this Mac, FTDI latency timer)
 PLAYBACK_STALL_LIMIT = 0.25  # seconds with no frame sent before the watchdog stops everything
 MAX_FAILED_FRAMES = 5        # frames in a row the bus may refuse (~165 ms of lost motion)
 SERIAL_WRITE_TIMEOUT = 0.1   # pyserial's default never times out, and a stuck write holds the bus
@@ -225,6 +235,8 @@ class RoboticArm:
 		self.task_running = False
 		self.current_positions = {}
 		self.present_currents = {}      # id -> (signed raw register 126, epoch seconds read)
+		self.present_positions = {}     # id -> measured position from the in-playback reads
+		self.read_skip_ids = set()      # IDs left out of sync reads (two motors answer to them)
 		self.lock = threading.RLock()
 		# All Dynamixel SDK traffic must pass through bus_action().
 		# This prevents multiple threads from hammering the half-duplex bus.
@@ -726,6 +738,37 @@ class RoboticArm:
 		self.enable_all_motor_torque(True)
 		log.info(f"{self.device_name}: Locked in place.")
 
+	def _read_present_block(self):
+		"""During playback: one sync read of 126..135 for every motor; stores the
+		current (and the measured position separately, as present_positions), never
+		retries, never waits for the bus."""
+		reader = GroupSyncRead(self.portHandler, self.packetHandler,
+							   self.ADDR_PRO_PRESENT_CURRENT, self.PRESENT_BLOCK_LEN)
+		try:
+			for dxl_id in self.dxl_ids:
+				if dxl_id not in self.read_skip_ids:
+					reader.addParam(dxl_id)
+			result = self.bus_action(reader.txRxPacket, label="playback current read", retries=0,
+									 min_interval=PLAYBACK_READ_GAP, log_failures=False, acquire_timeout=0)
+			if result != self.COMM_SUCCESS:
+				return 'bus busy' if result is None else self.packetHandler.getTxRxResult(result)
+			now = time.time()
+			missing = []
+			for dxl_id in self.dxl_ids:
+				if dxl_id in self.read_skip_ids:
+					continue
+				data = reader.data_dict.get(dxl_id) or []
+				if len(data) < self.PRESENT_BLOCK_LEN:
+					missing.append(dxl_id)
+					continue
+				raw = reader.getData(dxl_id, self.ADDR_PRO_PRESENT_CURRENT, 2)
+				self.present_currents[dxl_id] = (raw - 65536 if raw > 32767 else raw, now)
+				self.present_positions[dxl_id] = reader.getData(
+					dxl_id, self.ADDR_PRO_PRESENT_POSITION, self.ADDR_PRO_PRESENT_POSITION_LEN)
+			return f'no data from {missing}' if missing else None
+		finally:
+			reader.clearParam()
+
 	def get_current_positions(self, log_failures=True, low_priority=False):
 		if not self.port_is_open:
 			log.warning(f"{self.device_name}: Port not open.")
@@ -743,7 +786,8 @@ class RoboticArm:
 				)
 
 				for dxl_id in self.dxl_ids:
-					groupSyncRead.addParam(dxl_id)
+					if dxl_id not in self.read_skip_ids:   # duplicate IDs garble a sync read
+						groupSyncRead.addParam(dxl_id)
 
 				dxl_comm_result = self.bus_action(
 					lambda: groupSyncRead.txRxPacket(),
@@ -774,6 +818,8 @@ class RoboticArm:
 
 				self.last_read_time = time.time()
 				for dxl_id in self.dxl_ids:
+					if dxl_id in self.read_skip_ids:
+						continue
 					# isAvailable() does not notice a short reply; check the length too.
 					if (len(groupSyncRead.data_dict.get(dxl_id) or []) < self.PRESENT_BLOCK_LEN
 							or not groupSyncRead.isAvailable(
@@ -911,7 +957,8 @@ class RoboticArm:
 			reader = GroupSyncRead(self.portHandler, self.packetHandler,
 								   self.ADDR_PRO_TORQUE_ENABLE, self.STATUS_BLOCK_LEN)
 			for dxl_id in self.dxl_ids:
-				reader.addParam(dxl_id)
+				if dxl_id not in self.read_skip_ids:
+					reader.addParam(dxl_id)
 			result = self.bus_action(
 				lambda: reader.txRxPacket(),
 				label="read motor status",
@@ -1323,6 +1370,9 @@ class RoboticArm:
 							  for i, dxl_id in enumerate(self.dxl_ids[:len(first_row)])}
 				stall_reason = None
 				failed_frames = 0
+				read_times = []     # seconds per in-playback read
+				skipped_reads = 0
+				read_errors = collections.Counter()
 				self._last_frame_time = start_time
 				self._watchdog_stall = None
 				threading.Thread(target=self._playback_watchdog, args=(watchdog_done,), daemon=True,
@@ -1384,6 +1434,19 @@ class RoboticArm:
 						break
 					frame_count += 1
 					self._last_frame_time = time.time()
+					if PLAYBACK_READ_EVERY and dxl_comm_result == self.COMM_SUCCESS and frame_count % PLAYBACK_READ_EVERY == 0:
+						slack = start_time + frame_count * desired_interval - time.time()
+						if slack > PLAYBACK_READ_SLACK and self.lock.acquire(timeout=0):
+							try:
+								t0 = time.time()
+								error = self._read_present_block()
+								read_times.append(time.time() - t0)
+								if error:
+									read_errors[error] += 1
+							finally:
+								self.lock.release()
+						else:
+							skipped_reads += 1
 					if dxl_comm_result == self.COMM_SUCCESS:
 						failed_frames = 0
 					else:
@@ -1398,7 +1461,11 @@ class RoboticArm:
 					_stop_all_motion(f"{self.device_name}: {stall_reason}")
 				log.info(f"{self.device_name}: Playback done: {frame_count}/{total_frames} frames, "
 						 f"{late_frames} sent over 10 ms late"
-						 + (f" (worst {worst_late * 1000:.0f} ms)." if late_frames else "."))
+						 + (f" (worst {worst_late * 1000:.0f} ms)." if late_frames else ".")
+						 + (f" Current reads: {len(read_times) - sum(read_errors.values())} ok / {len(read_times)}"
+							f"{' (failed: ' + ', '.join(f'{k} x{v}' for k, v in read_errors.most_common(3)) + ')' if read_errors else ''}, {skipped_reads} skipped, "
+							f"avg {sum(read_times) / len(read_times) * 1000:.1f} ms, max {max(read_times) * 1000:.1f} ms."
+							if read_times else f" Current reads: none ({skipped_reads} skipped)."))
 				finished = frame_count >= total_frames
 				self.last_playback = {'file': csv_filename, 'started': start_time, 'frames': frame_count,
 									  'total': total_frames, 'seconds': time.time() - start_time,
@@ -2185,7 +2252,7 @@ for _arm in list(connected_arms):
 		if not any(_arm.torque_enabled.values()):
 			_arm.released = True  # older copies flagged a limp, fresh arm as faulty
 	# Fields added since that copy was loaded.
-	for _attr, _default in (('last_read_time', 0.0), ('time_profile_ids', []), ('custom_profile_ids', set()), ('live_view', False)):
+	for _attr, _default in (('last_read_time', 0.0), ('time_profile_ids', []), ('custom_profile_ids', set()), ('live_view', False), ('read_skip_ids', set()), ('present_positions', {}), ('present_currents', {})):
 		if not hasattr(_arm, _attr):
 			setattr(_arm, _attr, _default)
 	if getattr(_arm, 'port_is_open', False) and not (_arm.realtime_thread and _arm.realtime_thread.is_alive()):

@@ -21,7 +21,12 @@ $('mon-pause').onclick=()=>{paused=!paused;$('mon-pause').textContent=paused?'�
 $('mon-clear').onclick=()=>{for(const k of KEYS)history[k]=[];draw();};
 $('mon-csv').onclick=()=>{const rows=[['time_ms','motor','theoretical_Nm','current_based_Nm']];for(const k of KEYS)for(const s of history[k])rows.push([s.t,k,Number.isFinite(s.pose)?s.pose:'',Number.isFinite(s.measured)?s.measured:'']);
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}));a.download=`torque-timeseries-${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
-$('mon-window').onchange=$('mon-yaxis').onchange=()=>draw();
+// The browser restores <select> values on reload; use only what the viewer chose here.
+for(const [id,key,fallback] of [['mon-window','shosaedit-monitor-window','30'],['mon-yaxis','shosaedit-monitor-yaxis','1']]){
+ const el=$(id);let v=fallback;try{v=localStorage.getItem(key)||fallback;}catch{}
+ el.value=[...el.options].some(o=>o.value===v)?v:fallback;
+ el.onchange=()=>{try{localStorage.setItem(key,el.value);}catch{}draw();};
+}
 
 function drawChart(k){
  const card=document.querySelector(`[data-chart="${k}"]`),canvas=card.querySelector('canvas'),dpr=devicePixelRatio||1;
@@ -71,18 +76,19 @@ function render(){
   const p=poseFresh?pose[k]:undefined;
   const idx=side==='R'?Number(id)-1:Number(id)-11,pos=live?.[side]?.[idx];
   const set=(f,t)=>{const el=row.querySelector(`[data-f="${f}"]`);if(el.textContent!==t)el.textContent=t;};
-  set('model',model);set('torqueOn',TORQUE[status]||'—');
+  const dupModels=a?.duplicates?.[id];
+  set('model',dupModels?`⚠ ID重複（${dupModels.join(' / ')}）`:model);set('torqueOn',TORQUE[status]||'—');
   set('state',!c?(model==='XL430-W250'?'電流なし（XL430）':'未取得'):c.fresh?'受信中':'更新停止');
   set('current',fmt(c?.fresh?c.currentA:NaN));set('measured',fmt(measured));set('pose',fmt(p));
   set('diff',Number.isFinite(measured)&&Number.isFinite(p)?fmt(measured-p):'—');
   set('position',Number.isFinite(pos)?String(pos):'—');
   const barEl=row.querySelector('.bar');bar(barEl,'m',measured,scale);bar(barEl,'p',p,scale);
   if(!paused){const h=history[k];h.push({t:now,pose:Number.isFinite(p)?p:NaN,measured});while(h.length&&h[0].t<now-MAX_SECONDS*1000)h.shift();}
-  const card=document.querySelector(`[data-chart="${k}"]`);card.querySelector('[data-chart-pose]').textContent=fmt(p);card.querySelector('[data-chart-measured]').textContent=fmt(measured);card.querySelector('[data-chart-model]').textContent=model==='—'?'':model;
+  const card=document.querySelector(`[data-chart="${k}"]`);card.querySelector('[data-chart-pose]').textContent=poseModel?fmt(p):'メイン画面未読込';card.querySelector('[data-chart-measured]').textContent=fmt(measured);card.querySelector('[data-chart-model]').textContent=dupModels?`⚠ ID重複：${dupModels.join(' と ')}（値は不正確）`:model==='—'?'':model;
  }
  const n=Object.values(channels).filter(c=>c.fresh).length;
  if(!paused&&!$('view-charts').hidden)draw();
- $('mon-status').textContent=`実電流 ${n} / 17 軸受信中 · 理論値 ${poseFresh?'計算中':poseModel?'位置待ち':'モデル未受信（メインタブを一度開いてください）'} · 基準姿勢 ${['R','L'].map(s=>armRest?.[s]?.rest?`${s} ${armRest[s].model}（${armRest[s].time}）`:`${s} 未校正`).join(' / ')}`;
+ $('mon-status').textContent=`実電流 ${n} / 17 軸受信中 · 理論値 ${poseFresh?'計算中':poseModel?'位置待ち':'⚠ 未計算：ShosaEditのメイン画面を一度開いてください（モデルを受け取ります）'} · 基準姿勢 ${['R','L'].map(s=>armRest?.[s]?.rest?`${s} ${armRest[s].model}（${armRest[s].time}）`:`${s} 未校正`).join(' / ')}`;
 }
 
 async function get(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error(r.status);return r.json();}
@@ -90,7 +96,7 @@ async function poll(){
  try{[telemetry,live]=await Promise.all([get('/api/telemetry/status'),get('/api/arm/live')]);updatePose();}catch{telemetry=null;}
  render();setTimeout(poll,200);
 }
-async function pollArm(){try{arm=await get('/api/arm/status?since=999999999');armRest=await get('/api/arm/calibration');}catch{arm=null;}setTimeout(pollArm,1000);}
+async function pollArm(){try{arm=await get('/api/arm/status?since=999999999');armRest=await get('/api/arm/calibration');const m=(await get('/api/arm/pose-model')).model;if(m)poseModel=m;}catch{arm=null;}setTimeout(pollArm,1000);}
 $('mon-scale').onchange=render;
 bindArmControl({mount:host=>document.querySelector('.mon-side').append(host)});
 poll();pollArm();

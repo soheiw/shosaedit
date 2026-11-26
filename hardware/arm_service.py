@@ -75,6 +75,7 @@ class ArmService:
         self.estop = EStopListener(self._estop_pressed, lambda: {self.arms[s]['port'] for s in SIDES},
                                    arm.log, estop_port, busy=self._other_holders, start=start_estop)
         self.models = {}            # port -> {id: model number}
+        self.duplicates = {}        # port -> {id: [model, other model]} sharing one ID
         self._live_until = 0.0
         self._log_seq = 0
         self._log = []              # (seq, line), last 300
@@ -139,6 +140,7 @@ class ArmService:
                 'motors': {str(k): v for k, v in arm.motor_statuses(port).items()},
                 'models': {str(k): MODEL_NAMES.get(v, v) for k, v in self.models.get(port, {}).items()},
                 'recordingFolder': arm.recording_folder(port),
+                'duplicates': {str(k): v for k, v in self.duplicates.get(port, {}).items()},
             }
         with self._lock:
             log = [{'seq': s, 'line': l} for s, l in self._log if s > since]
@@ -207,8 +209,27 @@ class ArmService:
                     found[dxl_id] = int(model)
             except Exception as e:
                 arm.log.warning(f'{port} ID {dxl_id}: model read failed: {e}')
+        # A broadcast ping lets every motor answer in its own slot. If an ID answers
+        # with a different model than its unicast ping, two motors share that ID:
+        # both obey every command, and their replies collide in sync reads.
+        duplicates = {}
+        try:
+            data, comm = a.bus_action(lambda: a.packetHandler.broadcastPing(a.portHandler),
+                                      label='broadcast ping', retries=0, log_failures=False)
+            if comm == a.COMM_SUCCESS:
+                for dxl_id, model in found.items():
+                    other = (data.get(dxl_id) or [None])[0]
+                    if other is not None and other != model:
+                        duplicates[dxl_id] = [MODEL_NAMES.get(model, model), MODEL_NAMES.get(other, other)]
+        except Exception as e:
+            arm.log.warning(f'{port}: broadcast ping failed: {e}')
+        a.read_skip_ids = set(duplicates)
+        self.duplicates[port] = duplicates
         self.models[port] = found
         arm.log.info(f'{port}: models ' + ', '.join(f'{k}={MODEL_NAMES.get(v, v)}' for k, v in found.items()))
+        for dxl_id, (m1, m2) in duplicates.items():
+            arm.log.error(f'{port}: TWO MOTORS ANSWER TO ID {dxl_id} ({m1} and {m2}). Both move on every '
+                          f'command to ID {dxl_id}; its readings are left out. Give one of them another ID.')
 
     # ----- live values -----
     def live(self):
@@ -245,7 +266,10 @@ class ArmService:
             models = self.models.get(port, {})
             a = self._open_arm(port)
             torque = dict(getattr(a, 'torque_enabled', {}) or {}) if a else {}
+            dup = self.duplicates.get(port, {})
             for dxl_id, (raw, read_s) in sorted(currents.get(port, {}).items()):
+                if dxl_id in dup:
+                    continue    # two motors share this ID: the value is not one motor's
                 scale = CURRENT_MA_PER_COUNT.get(models.get(dxl_id))
                 if scale is None:
                     continue    # unknown model or Present Load (XL430): not a current
@@ -299,6 +323,25 @@ class ArmService:
             raise ValueError(f'{name}.csv missing for the {", ".join(missing)} arm')
         arm.play_recorded_movement(filename=name)
         return self.status()
+
+    def torque(self, side, ids, on):
+        """Torque on/off for some motors only. Turning torque on holds each motor where it
+        is (no goal is written), so nothing moves."""
+        side = self._side(side)
+        a = self._open_arm(self.arms[side]['port'])
+        if a is None:
+            raise ValueError('not connected')
+        if a.task_running or a.recording:
+            raise ValueError('stop playback or recording first')
+        if not isinstance(ids, list) or not ids or any(i not in a.dxl_ids for i in ids):
+            raise ValueError(f'ids must be motors of the {SIDE_NAMES[side]} arm')
+        def job():
+            for dxl_id in ids:
+                a.torque_enabled[dxl_id] = None     # force the write
+                a.enable_single_motor_torque(dxl_id, bool(on))
+        arm._submit(f'torque {side} {ids} {on}', job)
+        arm.log.info(f'{a.device_name}: torque {"ON" if on else "OFF"} for {ids}')
+        return {'side': side, 'ids': ids, 'on': bool(on)}
 
     MAX_NUDGE_DEG = 30
 
@@ -393,6 +436,28 @@ class ArmService:
         data['calibrations'][name][model] = entry
         self._save_models_file(data)
         return {'saved': True, 'side': side, 'model': model, 'rest': entry['rest'], 'time': entry['time']}
+
+    # The mass / joint model for the live theoretical torque. The main page publishes
+    # it; any monitor tab, in any browser, reads it from here. Kept on disk.
+    def _pose_model_path(self):
+        return self.config_path.parent / 'pose-model.json'
+
+    def pose_model(self):
+        try:
+            return {'model': json.loads(self._pose_model_path().read_text())}
+        except (OSError, ValueError):
+            return {'model': None}
+
+    def set_pose_model(self, body):
+        model = body.get('model')
+        if not isinstance(model, dict) or not any(s in model for s in SIDES):
+            raise ValueError('model with R and/or L required')
+        path = self._pose_model_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(model))
+        tmp.replace(path)
+        return {'saved': True}
 
     def calibration(self):
         """Rest pose of the arm model selected on each side now (arm_models.json)."""

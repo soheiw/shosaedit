@@ -65,6 +65,7 @@ class LocalPreviewHandler(SimpleHTTPRequestHandler):
             elif url.path == '/api/arm/live': self._json(200, arms.live())
             elif url.path == '/api/arm/recordings': self._json(200, arms.recordings())
             elif url.path == '/api/arm/calibration': self._json(200, arms.calibration())
+            elif url.path == '/api/arm/pose-model': self._json(200, arms.pose_model())
             else: self._json(404, {'error': 'Unknown endpoint'})
         except (ValueError, OSError) as error:
             self._json(400, {'error': str(error)})
@@ -85,7 +86,9 @@ class LocalPreviewHandler(SimpleHTTPRequestHandler):
         if action == 'save-motion': return arms.save_motion(body)
         if action == 'record': return arms.record(bool(body.get('on')), body.get('name'))
         if action == 'calibrate': return arms.calibrate(body.get('side'))
+        if action == 'pose-model': return arms.set_pose_model(body)
         if action == 'estop': return arms.configure_estop(body.get('port'))
+        if action == 'torque': return arms.torque(body.get('side'), body.get('ids'), body.get('on'))
         if action == 'nudge': return arms.nudge(body.get('side'), body.get('id'), body.get('degrees'))
         raise KeyError(action)
 

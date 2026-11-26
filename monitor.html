@@ -43,12 +43,12 @@ label.scale{font-size:12px;color:var(--muted)}
  <section class="mon-panel">
   <div class="mon-head"><h2>実機トルク モニター</h2><span class="mon-status" id="mon-status">接続中…</span>
    <span class="legend"><span><i style="background:#f4b76c"></i>理論値トルク（姿勢と質量モデルから）</span><span><i style="background:#89d6c5"></i>実電流から推定したトルク</span></span>
-   <label class="scale">バーの最大 <select id="mon-scale"><option>0.5</option><option selected>1</option><option>2</option><option>4</option></select> N·m</label></div>
+   <label class="scale">バーの最大 <select id="mon-scale" autocomplete="off"><option>0.5</option><option selected>1</option><option>2</option><option>4</option></select> N·m</label></div>
   <p class="mon-note">実電流から推定：モーターが読んだ電流 × 換算係数（公称の停止トルク÷停止電流、未校正）。トルクOFF（脱力）中はほぼ0です。<br>
    理論値：今の姿勢での重力トルク。基準姿勢は arm_models.json で今選ばれている腕のモデルのもの（実機パネルの「基準姿勢を保存」で更新）、質量・関節軸はメインタブのモデルを使い、このタブで現在位置から計算します。正負の向きが実測と一致するかは未確認です。</p>
   <div class="mon-tabs"><button type="button" data-view="charts" class="on">時系列グラフ</button><button type="button" data-view="table">表</button></div>
-  <div id="view-charts"><div class="mon-controls"><label>表示する長さ <select id="mon-window"><option value="10">10秒</option><option value="30" selected>30秒</option><option value="60">60秒</option><option value="120">120秒</option></select></label>
-   <label>縦軸 <select id="mon-yaxis"><option value="auto" selected>軸ごとに自動</option><option value="0.5">±0.5 N·m</option><option value="1">±1 N·m</option><option value="2">±2 N·m</option><option value="4">±4 N·m</option></select></label>
+  <div id="view-charts"><div class="mon-controls"><label>表示する長さ <select id="mon-window" autocomplete="off"><option value="10">10秒</option><option value="30" selected>30秒</option><option value="60">60秒</option><option value="120">120秒</option></select></label>
+   <label>縦軸 <select id="mon-yaxis" autocomplete="off"><option value="auto">軸ごとに自動</option><option value="0.5">±0.5 N·m</option><option value="1" selected>±1 N·m</option><option value="2">±2 N·m</option><option value="4">±4 N·m</option></select></label>
    <button type="button" id="mon-pause">一時停止</button><button type="button" id="mon-clear">消去</button><button type="button" id="mon-csv">CSV保存</button></div>
    <div class="mon-charts"><div class="mon-col" id="col-R"><h3>右腕</h3></div><div class="mon-col" id="col-L"><h3>左腕</h3></div></div></div>
   <div id="view-table" hidden><div style="overflow:auto"><table class="mon-table"><thead><tr><th>軸</th><th>理論値トルク N·m</th><th>実電流から推定 N·m</th><th>差（実−理論）</th><th>比較</th><th>電流 A</th><th>型番</th><th>トルク</th><th>状態</th><th>位置 counts</th></tr></thead><tbody id="mon-rows"></tbody></table></div></div>
