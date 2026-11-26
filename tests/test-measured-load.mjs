@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {getDefaultSettings,evaluateSample,decodePresentCurrent} from '../measured-load.js';
+const now=1700000000000,settings=getDefaultSettings();
+settings.R1.allowableTorqueNm=2;
+const sample={timestampMs:now,channels:[{side:'R',id:1,currentA:-2,temperatureC:44,voltageV:11.8},{side:'L',id:15,currentA:0.3}]};
+let report=evaluateSample(sample,settings,now);
+assert.equal(report.channels.length,17);
+assert.equal(report.channels[0].currentA,-2);
+assert.ok(Math.abs(report.channels[0].loadPercent-(7.3/4.4*100))<1e-8);
+assert.equal(report.channels.find(c=>c.key==='L15').torqueNm,null);
+assert.equal(report.channels.find(c=>c.key==='R2').currentA,null);
+assert.equal(evaluateSample(sample,settings,now+2001).channels[0].currentA,null);
+assert.equal(evaluateSample({...sample,timestampMs:now+2001},settings,now).status,'stale');
+assert.equal(evaluateSample({...sample,connected:false},settings,now).status,'unavailable');
+assert.equal(evaluateSample({...sample,channels:[...sample.channels,sample.channels[0]]},settings,now).channels[0].currentA,null);
+assert.equal(evaluateSample({timestampMs:now,channels:[{side:'R',id:1,currentA:null}]},settings,now).channels[0].torqueNm,null);
+assert.equal(evaluateSample({timestampMs:now,channels:[{side:'R',id:1,currentA:0}]},settings,now).channels[0].torqueNm,0);
+assert.equal(evaluateSample(sample,getDefaultSettings(),now).channels[0].loadPercent,null);
+assert.equal(decodePresentCurrent(65535,'XM540-W150-R'),-.00269);
+assert.equal(decodePresentCurrent(100,'XC330-T288-T'),.1);
+assert.equal(decodePresentCurrent(100,'unknown'),null);
+assert.equal(decodePresentCurrent(65536,'XM430-W350-R'),null);
+console.log('Measured load: signed current, unknowns, explicit limits, stale/disconnected/duplicate rejection passed.');
+
+assert.equal(evaluateSample({...sample,channels:[{...sample.channels[0],timestampMs:now+1}]},settings,now).channels[0].status,'stale');
+assert.equal(evaluateSample({...sample,channels:[{...sample.channels[0],fresh:false}]},settings,now).channels[0].status,'stale');

@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {armModelsSnapshot} from '../arm-calibration.js';
+import {interpretedConfiguration,applyAxisInterpretation} from '../recording-interpretation.js';
+import {applyWristReference} from '../wrist-reference.js';
+const source=JSON.parse(fs.readFileSync(new URL('../motion-data/video/video-arm-dance-model-c.motion.json',import.meta.url))).calibrationSnapshot;
+const library={version:1,models:['straight'],selected:{right:'straight',left:'straight'},calibrations:{right:{straight:{ids:source.R.ids,rest:source.R.rest}},left:{straight:{ids:source.L.ids,rest:source.L.rest}}}};
+const original=structuredClone(library),selection={R:'straight',L:'straight'};
+const once=armModelsSnapshot(library,selection,source);
+const twice=armModelsSnapshot(library,selection,once);
+assert.deepEqual(once,twice);assert.deepEqual(library,original);
+for(const side of ['R','L'])assert.equal(once[side].zero[4]-once[side].rest[4],1024);
+const legacy=structuredClone(source);legacy.R.zero[5]=1375;
+const base=applyAxisInterpretation(applyWristReference(legacy));
+const resolved=interpretedConfiguration(base,{calibrationSnapshot:once});
+assert.deepEqual(resolved.R.zero,once.R.zero);assert.deepEqual(resolved.L.zero,once.L.zero);
+assert.deepEqual(resolved.R.joints,once.R.joints);assert.deepEqual(resolved.L.joints,once.L.joints);
+console.log('PASS canonical reference conversion is idempotent; legacy migrations never override explicit calibration.');

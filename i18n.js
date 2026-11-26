@@ -1,5 +1,10 @@
 // Translate presentation text only. Motor data, filenames and saved edits stay untouched.
 const words={
+'左右CSV＋校正JSONをZIPで保存':'Save CSV pair + calibration ZIP',
+'右CSV＋校正ZIP':'Right CSV + calibration ZIP','左CSV＋校正ZIP':'Left CSV + calibration ZIP',
+'校正付きZIP・Motion JSON、または左右CSV＋校正JSONを選択できます。':'Select a calibrated ZIP, Motion JSON, or both CSVs with calibration JSON.',
+'修正した動きをリストに追加し、左右CSVと校正JSONのZIPを保存します。動きはこのブラウザにも残ります。':'Adds the edited motion to the list and downloads both CSVs with calibration JSON in one ZIP. The motion also stays in this browser.',
+
 '基準値・回転軸はモデル側の解釈設定です。CSVは変更しません。動画との照合は暫定的なものです。':'Reference values and axes interpret counts on the model side. CSV data is unchanged. Video alignment is provisional.',
 '左右それぞれの手形状':'Distinct right and left hand shapes',
 '左腕は右腕の鏡像':'Left arm mirrors right',

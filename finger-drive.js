@@ -1,9 +1,11 @@
+import {mappedClosures} from './finger-hand-map.js';
 // Display-only tendon interpretation. Never changes recorded/exported counts.
 export const defaultFingerSettings={enabled:true,swapRight:false,rightGain:1,leftGain:1};
 const clamp=x=>Math.max(0,Math.min(1,x));
 const ramp=(x,start,width=.16)=>{const t=clamp((x-start)/width);return t*t*(3-2*t);};
 export function fingerClosures(side,row,settings=defaultFingerSettings){
  if(side==='L')return [clamp((row[7]-494)/(2820-494))*settings.leftGain];
+ const mapped=mappedClosures(settings.handProfile,row[7],row[8]);if(mapped)return mapped.map(v=>v*settings.rightGain);
  let thumb=clamp((3906-row[7])/(3906-672)),little=clamp((row[8]+433)/(2984+433));
  if(settings.swapRight)[thumb,little]=[little,thumb];
  // Four chains exist in this CAD: thumb, two middle chains, little-side chain.

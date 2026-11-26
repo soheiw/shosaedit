@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createArmTargetBank} from '../arm-target.js';
+const motion=JSON.parse(await readFile(new URL('../motion-data/alienware/wakitest-20261103.motion.json',import.meta.url)));
+const source=motion.calibrationSnapshot;
+assert.ok(source,'wakitest must retain its known source calibration');
+const bank=createArmTargetBank(r=>r.calibrationSnapshot);
+const original=JSON.stringify(motion);
+bank.remember('wakitest',motion);
+const identical=bank.select(source).get('wakitest');
+assert.ok(!identical.error,identical.error);
+assert.deepEqual(identical.recording.R,motion.R,'same arm must preserve every right count');
+assert.deepEqual(identical.recording.L,motion.L,'same arm must preserve every left count');
+const other=structuredClone(source);
+other.label='test other arm';
+for(const side of ['R','L'])for(let i=0;i<7;i++)other[side].zero[i]+=100;
+const switched=bank.select(other).get('wakitest').recording;
+for(const side of ['R','L'])for(let f=0;f<motion[side].length;f++)for(let i=0;i<motion[side][f].length;i++)assert.equal(switched[side][f][i],motion[side][f][i]+(i<7?100:0));
+for(let i=0;i<8;i++){bank.select(other);const restored=bank.select(source).get('wakitest').recording;assert.deepEqual(restored.R,motion.R);assert.deepEqual(restored.L,motion.L);}
+const originalAgain=bank.select(null).get('wakitest').recording;
+assert.deepEqual(originalAgain,motion);
+assert.equal(JSON.stringify(motion),original);
+const unknown=structuredClone(other);unknown.R.zero[7]++;
+assert.match(bank.select(unknown).get('wakitest').error,/FINGER_MAPPING_REQUIRED/);
+assert.equal(JSON.stringify(bank.original('wakitest')),original);
+console.log('Known-good wakitest: all counts, both timelines and source JSON preserved; repeated arm switches have no drift; unknown finger calibration blocked.');
+// Exercise the actual TD JSON import path, rather than snapshot identity alone.
+const {armModelsSnapshot}=await import('../arm-calibration.js');
+const td={version:1,models:['Model A'],selected:{right:'Model A',left:'Model A'},calibrations:{right:{'Model A':{ids:source.R.ids,rest:source.R.rest,time:source.R.calibratedAt}},left:{'Model A':{ids:source.L.ids,rest:source.L.rest,time:source.L.calibratedAt}}}};
+const imported=armModelsSnapshot(td,{R:'Model A',L:'Model A'},source,{convention:source.convention});
+const fromJSON=bank.select(imported).get('wakitest');assert.ok(!fromJSON.error,fromJSON.error);
+assert.deepEqual(fromJSON.recording.R,motion.R);assert.deepEqual(fromJSON.recording.L,motion.L);
+console.log('TD JSON import: known-good wakitest raw counts and timing are exactly unchanged.');
+// Finger endpoints belong to one source calibration, never the entire library.
+const fingerTarget=structuredClone(source);fingerTarget.R.zero[7]++;
+const endpoints={R:[{index:7,sourceOpen:0,sourceClosed:4095,targetOpen:100,targetClosed:3995}]};
+const otherSource=structuredClone(motion);otherSource.calibrationSnapshot.R.zero[7]+=10;
+bank.select(null);bank.remember('other-source',otherSource);
+const scoped=bank.select(fingerTarget,endpoints,bank.sourceKey('wakitest'));
+assert.ok(!scoped.get('wakitest').error,scoped.get('wakitest').error);
+assert.match(scoped.get('other-source').error,/FINGER_MAPPING_REQUIRED/);
+const identityWithEndpoints=bank.select(source,endpoints,bank.sourceKey('wakitest')).get('wakitest').recording;
+assert.deepEqual(identityWithEndpoints.R,motion.R);
+assert.deepEqual(identityWithEndpoints.retargeting.fingerMappings.R,[]);
+console.log('Finger mapping scope: unrelated source calibration blocked; same-arm mapping is identity with no preview remap.');

@@ -12,3 +12,19 @@
 .motor-percent-field{display:flex;align-items:center;gap:4px;margin-bottom:4px;font-size:10px}.motor-percent-field input{flex:1}.motor-percent-field span{flex-shrink:0}
 
 .motor-nm-field{display:flex;align-items:center;gap:4px;font-size:9px}.motor-nm-field input{flex:1}.motor-nm-field span{flex-shrink:0}
+
+/* Intrinsic table widths must stay inside the sidebar's scroll area. */
+.load-panel, .load-settings, .load-motor-specs, .load-table-wrap { min-width: 0; max-width: 100%; }
+.load-table-wrap { width: 100%; }
+.load-settings table { table-layout: fixed; min-width: 0; }
+.load-settings th, .load-settings td { min-width: 0; overflow-wrap: anywhere; }
+.load-settings th:first-child { width: 13%; }
+.load-settings input { min-width: 0; margin: 0; }
+.load-selectors label, .load-materials label { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+.load-summary > div, .motor-limit-table th, .motor-limit-table td { min-width: 0; overflow-wrap: anywhere; }
+.load-motor-specs > div { max-width: 100%; overflow-x: auto; }
+@container (max-width: 280px) {
+  .load-settings th, .load-settings td { padding-inline: 1px; }
+  .load-settings input { padding-inline: 1px !important; font-size: 10px !important; }
+  .motor-limit-table button { white-space: normal; overflow-wrap: anywhere; }
+}

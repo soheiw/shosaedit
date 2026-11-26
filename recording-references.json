@@ -46,5 +46,140 @@
         2899
       ]
     }
+  },
+  {
+    "id": "alienware-model-a-20261030",
+    "name": "Alienware Model A · 保存校正 2026-10-30（表示用・暫定）",
+    "nameEn": "Alienware Model A · saved calibration 2026-10-30 (provisional)",
+    "basis": "Stored arm_models.json rest poses, selected Model A and tagged marka. Forearm reference conversion +1024 counts follows the saved PC display convention. No first-frame zeroing, CSV edits, or hardware writes. Mechanical wrist rest orientation remains unverified.",
+    "source": {
+      "path": "D:/B2J_rehersal/Recorded_movements/arm_models.json",
+      "sha256": "13e815b1a6cdbdb109268a787b2ccb8ee28ff61f2c7f24df9550d0b54a7cfd62"
+    },
+    "rest": {
+      "R": {
+        "rest": [
+          2540,
+          2955,
+          1126,
+          1909,
+          1506,
+          1975,
+          1856,
+          3890,
+          407
+        ],
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "port": "COM15",
+        "time": "2026-10-30 16:36:28",
+        "previous": {
+          "rest": [
+            2451,
+            3030,
+            806,
+            1939,
+            1523,
+            1923,
+            1795,
+            3890,
+            406
+          ],
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "port": "COM15",
+          "time": "2026-10-28 18:51:16"
+        }
+      },
+      "L": {
+        "rest": [
+          2028,
+          1110,
+          2108,
+          1144,
+          2065,
+          2032,
+          2225,
+          2883
+        ],
+        "ids": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "port": "COM14",
+        "time": "2026-10-30 16:36:27",
+        "previous": {
+          "rest": [
+            2119,
+            1050,
+            2213,
+            1127,
+            1955,
+            2099,
+            2260,
+            2820
+          ],
+          "ids": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "port": "COM14",
+          "time": "2026-10-28 18:51:15"
+        }
+      }
+    },
+    "zero": {
+      "R": [
+        2540,
+        2955,
+        1126,
+        1909,
+        2530,
+        1975,
+        1856,
+        3890,
+        407
+      ],
+      "L": [
+        2028,
+        1110,
+        2108,
+        1144,
+        3089,
+        2032,
+        2225,
+        2883
+      ]
+    }
   }
 ]

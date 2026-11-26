@@ -17,12 +17,22 @@ import {createSimpleModel,simplePivots} from '../simple-model.js';
 
 const root=new URL('../',import.meta.url),read=name=>fs.readFileSync(new URL(name,root),'utf8');
 const motions=JSON.parse(read('motion-data/motions.json'));
-const clips=[...Object.entries(motions.clips),...JSON.parse(read('motion-data/generated-motions.json')).map(e=>[e.id,JSON.parse(read('motion-data/'+e.file))])];
-assert.equal(clips.length,23,'3 original, 17 authored and 3 additional recordings must be covered');
+// This is a frozen pre-geometry-replacement corpus, not the live library.
+// New recordings have their own calibration snapshots and are covered by the
+// interpretation/export tests; adding them must not redefine these fingerprints.
+const baselineIds=new Set([
+ 'bird-flap','hand-waves','alternating-waves','dab-pose',
+ 'bird-flap-back-up','hand-waves-back-up','alternating-waves-back-up','dab-pose-back-up',
+ 'banzai','banzai-natural','surrender','present','shrug','victory','guard','bow-draw','hug',
+ 'recorded-marka','recorded-markb','recorded-markc','alienware-marka-20261102-175844'
+]);
+const clips=[...Object.entries(motions.clips),...JSON.parse(read('motion-data/generated-motions.json')).filter(e=>baselineIds.has(e.id)).map(e=>[e.id,JSON.parse(read('motion-data/'+e.file))])];
+assert.equal(clips.length,24,'3 original, 17 authored, 3 additional recordings and Alienware marka must be covered');
 const P=[[-13.0614,-559.9965,0],[-13.0614,-559.9965,-14],[-18.65,-559.9965,36.503],[-13.2884,-480,36.503],[-15.98,-357.8448,36.5615],[-13.207,-244.6,1.1525],[-2.2069,-126.1417,2.65],[-26.2069,-126.1417,1.1525]];
 const A={R:[[0,1,0],[0,0,1],[-1,0,0],[0,1,0],[-1,0,0],[0,1,0],[0,0,1],[1,0,0]],L:[[0,1,0],[0,0,-1],[1,0,0],[0,1,0],[1,0,0],[0,1,0],[0,0,1],[-1,0,0]]};
 const Z={R:[2535,2916,2034,2974,3611,3025,1890,3492,396],L:[2035,1112,2258,1166,1895,2003,2164,3213]};
 const C={R:[2541,2947,1022,1892,1524,2017,1814,3891,405],L:[2034,1115,2079,1168,1905,1987,2268,2899]};
+const D={R:[2540,2955,1126,1909,2530,1975,1856,3890,407],L:[2028,1110,2108,1144,3089,2032,2225,2883]};
 const legacyZero={R:[2535,2916,2034,2974,3611,1375,1890,3492,396],L:[2035,1112,2258,1166,1895,2003,2164,3213]};
 const converted=clip=>clip.generation?.modelInterpretationVersion==='markc-authored-v1';
 // Frozen exception intervals measured from the pre-conversion data. Reverse the
@@ -34,7 +44,7 @@ const endpointIntervals={
  'alternating-waves-back-up':[[46,46,1],[47,312,2],[313,313,1]]
 };
 const endpointAdjustment=(id,frame)=>endpointIntervals[id]?.find(([first,last])=>frame>=first&&frame<=last)?.[2]??0;
-const legacyClips=clips.filter(([id])=>!id.startsWith('recorded-')).map(([id,c])=>[id,{...c,...Object.fromEntries(['R','L'].map(side=>[side,c[side].map((row,frame)=>row.map((v,i)=>{
+const legacyClips=clips.filter(([id])=>!id.startsWith('recorded-')&&id!=='alienware-marka-20261102-175844').map(([id,c])=>[id,{...c,...Object.fromEntries(['R','L'].map(side=>[side,c[side].map((row,frame)=>row.map((v,i)=>{
  if(!converted(c))return v-(side==='R'&&c.generation?.rightWristReference===3025&&i===5?1650:0);
  // Generated tendon channels are independently checked below; normalize only
  // those newly authored channels to the historical fixed-finger baseline.
@@ -79,6 +89,7 @@ let rows;
 const data=new ArrayBuffer(48),vertices=new Float32Array(data,0,9);vertices.set([1,2,3,2,2,3,1,3,3]);new Uint32Array(data,36,3).set([0,1,2]);
 const fixture={bodies:P.map((_,group)=>({group,solid:true,positionOffset:0,vertexCount:3,indexOffset:36,indexCount:3}))};
 const createRuntime=new Function('THREE','motions','model','state','scene','$','rowFor','interpretedConfiguration','recordingReferences',[
+ 'const exclusionBox=null;', // Optional visual overlay has no effect on rig transforms.
  `const rightWristReference=${rightWristReference};`,declaration('pivots'),declaration('parents'),declaration('axes'),declaration('palette'),
  fn('freshConfig'),'const config=freshConfig();',fn('activeConfiguration'),fn('makeRigs'),fn('rebuildRig'),fn('applyPose'),
  'return {config,makeRigs,rebuildRig,applyPose};'
@@ -134,7 +145,7 @@ assert.equal(clippedFrames,756,'only the three documented R upper-arm endpoint s
 function checkPose(label,targetRuntime=runtime,targetState=state){
  targetRuntime.applyPose();
  for(const side of ['R','L']){
-  const rig=targetState.rigs[side];rig.root.updateMatrixWorld(true);const expected=reference(side,rows[side],{zero:targetState.clip==='recorded-markc'||converted(motions.clips[targetState.clip])?C[side]:Z[side]});
+  const rig=targetState.rigs[side];rig.root.updateMatrixWorld(true);const expected=reference(side,rows[side],{zero:targetState.clip==='alienware-marka-20261102-175844'?D[side]:targetState.clip==='recorded-markc'||converted(motions.clips[targetState.clip])?C[side]:Z[side]});
   for(let g=0;g<8;g++)nearMatrix(rig.groups[g].matrixWorld,expected[g],`${label} ${side} link ${g}`);
   // Full matrix comparison includes handedness and all three hand basis axes,
   // not just a palm normal; neither rotation around that normal nor mirror can hide.
@@ -188,7 +199,7 @@ for(const [id,clip]of clips){
  for(const mode of [0,1]){
   const curves=Object.fromEntries(['R','L'].map(side=>[side,{rate:mode?(side==='R'?.7:1.4):1,enabled:!!mode,points:defaultPoints().map((p,i)=>({...p,y:mode?[.35,.55,1.6,1.1,2.4,.8,.6][i]:1}))}]));
   const delays={R:0,L:mode?.23:0},duration=Math.max(...['R','L'].map(s=>createPlaybackClock(count,curves[s],30).duration+delays[s]));
-  if(!id.startsWith('recorded-'))for(const side of ['R','L']){const legacyRows=legacyClips.find(([key])=>key===id)[1][side];exportedHash.update(JSON.stringify([id,mode,side,exportRows(legacyRows,count,curves[side],30,{delaySeconds:delays[side],durationSeconds:duration})]));}
+  if(!id.startsWith('recorded-')&&id!=='alienware-marka-20261102-175844')for(const side of ['R','L']){const legacyRows=legacyClips.find(([key])=>key===id)[1][side];exportedHash.update(JSON.stringify([id,mode,side,exportRows(legacyRows,count,curves[side],30,{delaySeconds:delays[side],durationSeconds:duration})]));}
  }
 }
 assert.equal(exportedHash.digest('hex'),'09c1cdcd8b6935210fda3530e75a6a1961c8d39a0a8bc4f35f902298658499ff','CSV samples/timing changed during geometry replacement');

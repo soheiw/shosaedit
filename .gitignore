@@ -4,6 +4,7 @@ __pycache__/
 .env
 .env.*
 node_modules/
+/.motion-sync/
 tests/*-report.json
 
 # Local robot descriptions are excluded from source control.
@@ -29,3 +30,5 @@ tests/*-report.json
 *.fbx
 *.glb
 *.gltf
+
+/reference-videos/

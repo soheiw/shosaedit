@@ -33,3 +33,29 @@ for(const [file,expected] of Object.entries(originalHashes)){
  assert.equal(actual,expected,`${file}: original recording bytes changed`);
 }
 console.log(`PASS ${Object.keys(originalHashes).length} frozen original recording files remain byte-identical`);
+
+// A duplicate robot's saved mechanical reference must not leak into legacy
+// recordings. Its near-straight elbow used to render approximately 94° bent.
+const alienware=read('motion-data/alienware/marka-20261102-175844.motion.json');
+const alienwareBefore=JSON.stringify(alienware),baseBefore=JSON.stringify(base);
+const duplicate=interpretedConfiguration(base,alienware,profiles);
+assert.equal(duplicate.R.zero[3],1909);
+assert.equal(base.R.zero[3],2974);
+assert(Math.max(...alienware.R.map(r=>Math.abs((r[3]-duplicate.R.zero[3])*360/4096)))<.4);
+assert(Math.abs((alienware.R[0][3]-base.R.zero[3])*360/4096)>90);
+assert.equal(interpretedConfiguration(base,read('motion-data/marka.motion.json'),profiles),base);
+const editedDuplicate=structuredClone(alienware);editedDuplicate.R[0][3]+=10;
+assert.equal(interpretedConfiguration(base,editedDuplicate,profiles).R.zero[3],1909,'explicit calibration survives edits to first row');
+assert.equal(JSON.stringify(alienware),alienwareBefore);
+assert.equal(JSON.stringify(base),baseBefore);
+console.log('PASS Alienware saved elbow reference, immutable counts, legacy isolation and edited first-row handling');
+
+// Mounted left arm: preserve the elbow bend and change its upstream rotation plane.
+const front2=read('motion-data/alienware/front2-191733.motion.json');
+const capture=JSON.stringify(front2);
+const mounted=interpretedConfiguration(base,front2);
+assert.deepEqual(mounted.L.joints[3].axis,[0,-1,0]);
+assert.deepEqual(mounted.L.joints[4],front2.calibrationSnapshot.L.joints[4]);
+assert.deepEqual(mounted.L.joints[5],front2.calibrationSnapshot.L.joints[5]);
+assert.deepEqual(mounted.R.joints,front2.calibrationSnapshot.R.joints);
+assert.equal(JSON.stringify(front2),capture);

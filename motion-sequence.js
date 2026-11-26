@@ -1,3 +1,4 @@
+import {sequenceCalibration} from './arm-calibration.js';
 const countLimit = 2147483647;
 const sides = [['R', 9], ['L', 8]];
 const fail = (code, message) => { throw Object.assign(new Error(message), {code}); };
@@ -56,7 +57,7 @@ export function composeSequence(segments, {name = 'Sequence', maxFrames = 10000}
   const result = {format: 'augmented-arms-motion', version: 1, fps: 30,
     name: String(name || 'Sequence').slice(0, 100), exportStem: 'Sequence',
     description: '複数の動作を切り出し、接続区間を補間した動き', bakedEdits: true,
-    R: [], L: [], composition: {fps: 30, interpolation: 'quintic-smoothstep', segments: metadata}};
+    ...sequenceCalibration(selections.map(s=>s.clip)),R: [], L: [], composition: {fps: 30, interpolation: 'quintic-smoothstep', segments: metadata}};
   const sample = (clip, side, frame) => clip[side][Math.min(frame, clip[side].length - 1)];
   for (let index = 0; index < selections.length; index++) {
     const {clip, startFrame, endFrame, transitionFrames, transitionMode} = selections[index];

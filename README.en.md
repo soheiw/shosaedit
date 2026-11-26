@@ -10,6 +10,12 @@ The repository runs with a coarse simplified model and motion data. Detailed CAD
 
 The left pane shows **the original motion of both arms**; the right pane shows **the edited motion of both arms**. Right-arm and left-arm speed settings refer to the robot's arms, not the two comparison panes.
 
+## Current features and handoff
+
+Alongside 3D comparison, timing edits, and calibrated exports, the app supports shared-folder CSV delivery to COM14/15, automatic library refresh, reference-video comparison, and current-based estimated load monitoring. **Delivering CSV files does not start hardware playback.** The measured-current panel is implemented; connecting its helper to the actual TD monitoring cache and validating it on hardware remain unfinished.
+
+For development, start with [the CODEX handoff](docs/CODEX_HANDOFF.md). This README describes features, not hardware certification of the supplied motions.
+
 ## Getting started
 
 You need **Python 3** and a **WebGL-capable browser**. Normal use does not require Node.js or package installation.
@@ -17,12 +23,12 @@ You need **Python 3** and a **WebGL-capable browser**. Normal use does not requi
 ```sh
 git clone https://github.com/soheiw/shosaedit.git
 cd shosaedit
-python3 launch.py
+python3 launch.py --port 8766
 ```
 
 The launcher opens your browser automatically. On macOS, you can also double-click **起動.command** in the project folder.
 
-- The usual URL is `http://127.0.0.1:8765/`.
+- With the command above, open `http://127.0.0.1:8766/`. The launcher default when `--port` is omitted is 8765.
 - If another app occupies the port, the launcher uses an available port. Open the URL printed in the terminal.
 - Press `Ctrl+C` in the terminal to stop the server.
 - Use the local server rather than opening the HTML file directly.
@@ -30,10 +36,10 @@ The launcher opens your browser automatically. On macOS, you can also double-cli
 To start without opening a browser and specify a preferred port:
 
 ```sh
-python3 launch.py --no-browser --port 8765
+python3 launch.py --no-browser --port 8766
 ```
 
-The model, rendering libraries, and motion data are bundled. Playback and editing run locally. The app does not connect to physical actuators.
+The model, rendering libraries, and motion data are bundled. Playback and editing run locally. COM delivery writes shared files; it does not issue playback or torque commands. OSC streaming is a separate, explicitly started feature.
 
 ## Basic workflow
 
@@ -71,7 +77,7 @@ The effective speed is the arm's playback rate multiplied by the curve value. **
 
 An arm waiting to start holds its first pose; an arm that has finished holds its last pose. Looping restarts after both the original and edited playback have finished.
 
-The playback slider and load graph use **actual elapsed time**. The motor-position graph uses **source time**. Speed and delay settings are automatically saved in the browser for each motion.
+The playback slider and main load/position graphs use **actual elapsed time**. The source-data editing graph uses source time. Speed and delay settings are automatically saved in the browser for each motion.
 
 ## Smoothing
 
@@ -90,11 +96,12 @@ Under **Save or export edited motion**, enter a name and press **Save as new mot
 - A new 30 fps motion is created with both arms' rates, speed curves, delay, and smoothing applied.
 - It is added to the dropdown and selected. The original remains available. Duplicate names receive a numeric suffix.
 - The motion is stored in the browser's IndexedDB and remains available after reloading.
-- A **Motion JSON** file is downloaded at the same time.
+- A **calibrated ZIP** containing both CSVs and a `.calibration.json` manifest is downloaded. The manifest includes row counts and CSV SHA-256 hashes.
+- When bidirectional auto sync is enabled, saving also requests delivery to the shared folder. Check transfer status separately from local save success.
 
 Edits are baked into the saved samples. On first selection, the saved motion opens at **1× speed, no delay, and smoothing off**, so the edits are not applied twice. This saves the resulting motion, not the editing history or original Bézier control points. You can edit the saved motion further.
 
-**The browser's motion list and the downloaded file are separate.** Clearing site data removes the saved list. A different browser or URL port uses a different storage area. Keep the JSON file for backup or transfer, and reload it with **Open motion file**.
+**The browser's motion list and the downloaded file are separate.** Clearing site data removes the saved list. A different browser or URL port uses a different storage area. Keep the calibrated ZIP for backup or transfer, and reload it with **Open motion file**.
 
 ## Panels and recording slots
 
@@ -109,6 +116,45 @@ Left-hand-specific mass, COM and inertia have not yet been integrated; shared pr
 ## Live torque graph
 
 The fixed charts below playback show estimated absolute torque (N·m) for seven joints on each arm, a moving playback cursor, and current values. Click a graph to seek. Select one joint to show its configured limit and warning threshold; enable **Original (dotted)** to compare. Stale graphs disappear during recalculation. Values are estimates, not measurements.
+
+## Shared-folder sync and COM delivery
+
+1. Mount the Alienware share through the operating system, then enter its absolute path in **Alienware auto sync**. Network connectivity through Tailscale alone does not mount a share.
+2. Enable auto sync and apply the direction. Select **Both ways** to publish. **COM14 is left; COM15 is right.**
+3. Imports wait for matching left/right CSVs. The UI checks sync results approximately every five seconds, so refreshing the browser is unnecessary for new list entries. **Check now** requests an immediate scan.
+4. Recordings without calibration remain in the calibration queue. Choose a correctly calibrated motion before applying its calibration to an import; calibration is not guessed.
+5. Click **Apply to COM14 / 15** in the save area. The app checks calibration and configured estimated-load limits, transfers the files, and reports read-back verification. Pending or failed transfers are not completed delivery. Different data under an existing name receives a new name, preserving the old files.
+
+This button does not operate TD playback, lock, or release. Checking the starting pose, hardware reference, and installed hand configuration is a separate task.
+
+## Reference-video comparison
+
+Choose front, alternate angle, or both under **Reference**, and set the start offset and alternate-angle time offset. **Open** also accepts a local video. Default files are `reference-videos/front.mp4` and `reference-videos/angle.mp4`.
+
+Reference videos are optional local materials excluded from Git. Editing works without them. Timing offsets affect comparison display, not the original video files. **Save scene MP4** records the displayed composition rather than editing the source footage.
+
+## Measured current and estimated load
+
+This panel is separate from the pose/acceleration-based load model. It estimates load **from measured current**, without opening motor serial ports. An existing TD or other monitoring process must write its `Present Current` readings to JSON.
+
+**Implementation status:** ingestion, display, recording, and an export helper are implemented. The adapter connecting `integrations/export_current_snapshot.py` to the actual TD cache still needs integration for the specific environment. Disconnected means no measured data; hardware operation has not been verified.
+
+1. Publish JSON with successful acquisition timestamps following [the telemetry contract](docs/current-telemetry.md). Re-saving an old cache must not give it a new measurement timestamp.
+2. Enter the JSON's absolute path in the panel's data-source section. Apply an empty path to disconnect. Synchronize clocks on the producing and displaying PCs.
+3. Check hardware IDs, models, N·m/A conversion coefficients, and operational allowable torque. Initial model mappings are assumptions from the saved joint table. Unknown coefficients and allowable limits remain unset.
+4. Start/stop recording, then export settings, samples, and statistics as JSON.
+
+| Display | Meaning |
+| --- | --- |
+| Current A | Signed measured current, not Goal Current, PWM, or Present Load. |
+| Estimated N·m | Current multiplied by the configured N·m/A coefficient, preserving sign. |
+| Load % | Absolute estimated torque divided by configured allowable torque × 100; unavailable without a limit. |
+| Peak / continuous exceedance | Absolute peak and continuous over-limit duration among received valid samples. |
+| Temperature / voltage | Shown only when supplied by the source. |
+
+Initial coefficients for known models are **rough stall-torque/stall-current ratios**, not calibrated torque measurements. Stall torque is not automatically used as a continuous allowable limit. Missing or stale data is not zero load. Measurements older than two seconds or dated in the future are not fresh.
+
+File/UI polling is approximately 0.5 seconds and can miss brief peaks. The recorded peak is not necessarily the true maximum during a motion. This panel monitors and records; it adds no automatic hardware stop or playback permission mechanism.
 
 ## OSC / UDP streaming to TouchDesigner
 
@@ -140,7 +186,7 @@ Use **Motion sequence** to arrange multiple recordings into one motion.
 2. Select a source and click **Add original** for raw data, or **Add current edited motion** to bake the current speed, delay and smoothing into a copied segment.
 3. Use ↑ / ↓ to reorder. Set start and exclusive end times in seconds. Choose **Overlap blend** or **Insert transition**, then set 0–10 seconds; zero makes a direct cut. No transition follows the last clip.
 4. Click **Preview sequence**. **Before join (original)** seeks about 0.5 seconds before a join on the original sequence clock. Independent speed or delay edits may place edited-arm joins at other elapsed times.
-5. Enter a name and click **Save sequence** to add it to the motion list and download a Motion JSON. Existing right/left CSV and ZIP exports work on the result.
+5. Enter a name and click **Save sequence** to add it to the motion list and download a calibrated ZIP. Existing right/left CSV and ZIP exports work on the result.
 
 The arrangement, trims and copied source data are saved as a draft in this browser and restored after reload. Drafts do not carry across browsers or ports, and clearing site data removes them. Exported JSON contains the flattened sequence; keep original capture files separately.
 
@@ -159,10 +205,11 @@ Set each motor's allowable torque in N·m in the 14-axis **Estimated loads** tab
 
 ## Import files and export CSVs
 
-**Open motion file** accepts either of the following:
+**Open motion file** accepts the following formats:
 
 | Format | Contents |
 | --- | --- |
+| Calibrated ZIP | CSVs plus their calibration manifest exported by ShosaEdit; recommended for retaining calibration when reloading. |
 | Motion JSON | One ShosaEdit motion file containing both arms, with `format: augmented-arms-motion`, `version: 1`, and `fps: 30`. |
 | CSV pair | Select matching `MotionNameR.csv` and `MotionNameL.csv` files together. No header, integer values, 9 columns for the right arm and 8 for the left. |
 
@@ -223,8 +270,8 @@ Load estimates retain the same aggregate link masses, centers of mass, and inert
 ## Model and joint assumptions
 
 - The joint model uses `link_0`–`link_7`. Fingers and tendon-related parts are fixed to `link_7`.
-- The left arm is a provisional mirror of the right. Optional local CAD restores the original component shapes.
-- Input columns 1–7 drive the shoulder-to-wrist joints. Columns 8/9, where present, are retained and exported but do not animate fingers.
+- Dedicated left-arm geometry is supported; distinguish actual left CAD from the explicitly labeled mirrored fallback.
+- Input columns 1–7 drive shoulder-to-wrist joints. Right columns 8/9 and left column 8 are retained, exported, and used by the finger preview.
 - The side with two small visible motors is the palm. **Hide hand covers** helps inspect this identifying feature.
 - **Joint mapping and reference pose** lets you change input IDs, rotation directions, axes, and reference angles. Physical calibration is still required.
 
@@ -238,6 +285,7 @@ Checks require Node.js 20 or later. No external packages need to be installed.
 
 ```sh
 npm test
+npm run test:measured-load
 ```
 
 Checks cover independent playback clocks, delay, CSV sampling, LINK switching and settings restoration, load calculations, endpoint holds, and 14-axis limit assessment including exceedance duration and highest-ratio selection. Numerical checks are separate from CAD visual inspection and physical validation.
@@ -254,15 +302,24 @@ Checks cover independent playback clocks, delay, CSV sampling, LINK switching an
 | `mass-properties.json` | Aggregate link mass, COM, and inertia without surface geometry |
 | `private-model/README.txt` | Instructions for separately obtained CAD |
 | `motion-data/motions.json` / `motion-data/*.motion.json` | Original recordings and generated motions |
+| `measured-load.js` / `measured-load-panel.js` / `telemetry.py` | Current-based estimated loads and JSON ingestion |
+| `motion_sync.py` / `managed_sync.py` / `com-publish.js` | Shared-folder sync and COM file delivery |
+| `docs/CODEX_HANDOFF.md` | Current state, unverified items, and development handoff |
 | `tests/` | Numerical and settings checks |
 
 See the [motion re-audit record](docs/motion-reaudit.md) for the scope of earlier motion reviews and the [gesture research notes](docs/shosa-research.md) for the design background. These supporting documents are currently in Japanese.
+
+`test:measured-load` checks JavaScript current conversion/state evaluation and Python telemetry ingestion using simulated data, not hardware.
 
 ## Licenses and data
 
 The Three.js license is in [`vendor/LICENSE-three.txt`](vendor/LICENSE-three.txt). No blanket redistribution license has been assigned to the whole repository, including its motion data; full-arm detailed CAD is not distributed; the authorized hand geometry is included. Check the rights for each asset before publishing or redistributing it.
 
 Additional recordings `marka` and `markb` use COM14 for the left arm and COM15 for the right arm, at 30 fps. Select them from the motion list. Run `node scripts/import-com-recordings.mjs` to rebuild them from the unchanged original CSVs.
+
+### Historical calibration and recording notes
+
+The following describes the 2026-10-26 state. Do not reuse these counts as the current hardware reference or HA/HB conversion: check the motion calibration snapshot and installed configuration.
 
 The shared right-wrist reference is provisionally 3025 counts (column 6), based on the supplied 2026-10-26 video and marka's nearly straight starting wrist. The former 1375 value came from Motion 1's first sample, not physical calibration. Original recordings are unchanged. Authored motions have column 6 shifted by +1650 to retain their intended joint trajectories. Physical agreement of the older Motion 1–3 recordings remains unverified.
 

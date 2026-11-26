@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {handMaps} from './finger-hand-map.js';
 import {fingerClosures} from './finger-drive.js';
 const v=a=>new THREE.Vector3(...a),angle=(a,b,n)=>Math.atan2(n.dot(a.clone().cross(b)),a.dot(b));
 const rot=(p,n,a)=>new THREE.Matrix4().makeTranslation(...p.toArray()).multiply(new THREE.Matrix4().makeRotationAxis(n,a)).multiply(new THREE.Matrix4().makeTranslation(...p.clone().negate().toArray()));
@@ -37,7 +38,7 @@ export function createFingerRig(side,meshes,handPivot,definition){
     if(item.chain){
      const chain=item.chain,idx=chain.order;
      // Optional input isolation works for the finger columns too.
-     const isolated=solo<0?row:row.map((x,i)=>i===solo?x:i===7?3906:i===8?-433:x);
+     const isolated=solo<0?row:row.map((x,i)=>i===solo?x:i===7?(handMaps[settings.handProfile]?.release[0]??3906):i===8?(handMaps[settings.handProfile]?.release[1]??-433):x);
      const amount=solo<0?closure[idx]:fingerClosures(side,isolated,settings)[idx];
      if(!cache.has(chain)){
       const requested=amount*chain.maxDriverDegrees*Math.PI/180;

@@ -76,3 +76,72 @@ header>div:first-child{display:flex;align-items:baseline;gap:10px}header{padding
 
 .live-graph-mode{background:#171f29;padding:3px 10px;border-top:1px solid var(--line)}
 #position-live[hidden],#torque-live[hidden]{display:none}
+
+/* Reference movie shares the sticky stage with the CAD view. */
+.reference-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:5px 10px;font-size:11px;border-bottom:1px solid var(--line)}
+.reference-toolbar select{max-width:160px;font-size:11px}.reference-toolbar input[type=number]{width:65px}.reference-toolbar small{color:var(--muted)}
+.stage-visuals{display:flex;flex:1;min-height:0;overflow:hidden}.stage-visuals #viewport{flex:1;min-width:0}
+.reference-pane{width:28%;min-width:125px;background:#0d1118;display:flex;flex-direction:column;border-left:1px solid var(--line)}
+.reference-pane[hidden]{display:none}.reference-pane video{width:100%;height:100%;min-height:0;object-fit:contain;flex:1}.reference-caption{font-size:10px;text-align:center;padding:3px;color:var(--muted)}
+.reference-pane{flex-direction:row}.reference-pane.reference-dual{width:40%;min-width:240px}.reference-slot{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}.reference-slot[hidden]{display:none}.reference-slot+.reference-slot{border-left:1px solid var(--line)}.reference-toolbar [hidden]{display:none}
+@media(max-width:760px){.reference-pane.reference-dual{width:42%;min-width:150px}.reference-pane{min-width:80px}.reference-caption{font-size:9px}}
+
+/* Keep editing controls alongside the preview in the Codex side panel. */
+@media (min-width: 560px) and (max-width: 760px) {
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(214px, 37%);
+    gap: 6px;
+    padding-inline: 6px;
+  }
+  main > * { min-width: 0; }
+  aside { display: flex; flex-direction: column; min-width: 0; }
+  aside :is(label,select,input,button) { min-width: 0; max-width: 100%; }
+  .stage { height: min(760px, calc(100dvh - 14px)); min-height: 0; }
+  .stage-top { flex-wrap: wrap; }
+  .reference-pane.reference-dual { min-width: 0; }
+  .live-torque-legend { flex-wrap: wrap; }
+  .live-torque-legend button { flex: 1 0 16%; }
+}
+
+/* Let narrow editor columns shrink without cutting off their controls. */
+aside, aside > *, .panel-fold > section { min-width: 0; }
+aside { container-type: inline-size; }
+.section-heading { flex-wrap: wrap; }
+#motor-values { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.motor { min-width: 0; }
+@container (max-width: 280px) {
+  #motor-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .load-summary { grid-template-columns: minmax(0, 1fr); }
+  .section-heading { align-items: flex-start; }
+}
+@media (min-width: 560px) and (max-width: 760px) {
+  .stage-playback .row { float: none; display: flex; }
+  .stage-playback .frame-line { float: none; }
+  .stage-top > div:first-child { flex-wrap: wrap; }
+  .reference-pane { min-width: 0; }
+  .reference-caption { overflow-wrap: anywhere; }
+  .view-labels span { min-width: 0; overflow-wrap: anywhere; }
+}
+
+/* A narrow app pane cannot fit a four-view stage beside the editor. */
+main > .stage { min-width: 0; max-width: 100%; }
+@media (max-width: 900px) {
+  main { display: flex; flex-direction: column; padding: 0 6px; gap: 8px; }
+  main > .stage, main > aside { width: 100%; min-width: 0; }
+  aside { display: flex; flex-direction: column; }
+  .stage { top: 0; height: clamp(460px, 72dvh, 680px); min-height: 460px; }
+  .stage-top { flex-wrap: wrap; }
+  .stage-top > div:first-child { flex: 1 1 200px; flex-wrap: wrap; }
+  .reference-toolbar { gap: 4px; padding: 4px 8px; }
+  .reference-pane, .reference-pane.reference-dual { min-width: 0; }
+  .stage-playback .row { float: right; display: inline-flex; }
+  .stage-playback .frame-line { float: right; }
+  .live-torque-legend { flex-wrap: nowrap; }
+  .live-torque-legend button { flex: 1 1 0; }
+  html { scroll-padding-top: calc(clamp(460px, 72dvh, 680px) + 8px); }
+}
+
+/* Respect Chrome's visual viewport during trackpad pinch zoom. */
+body { width: var(--visible-width, 100%); max-width: 100%; }
+header, main, footer { width: 100%; }

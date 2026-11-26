@@ -1,5 +1,117 @@
 [
   {
+    "id": "full2_waki6_preview",
+    "file": "video/full2_waki6_preview.motion.json"
+  },
+  {
+    "id": "waki6",
+    "file": "alienware/waki6.motion.json"
+  },
+  {
+    "id": "wakitest5_HA_hand",
+    "file": "video/wakitest5_HA_hand.motion.json"
+  },
+  {
+    "id": "follow_straight",
+    "file": "video/follow_straight.motion.json"
+  },
+  {
+    "id": "smooth_end_straight",
+    "file": "video/smooth_end_straight.motion.json"
+  },
+  {
+    "id": "soft1587_straight",
+    "file": "video/soft1587_straight.motion.json"
+  },
+  {
+    "id": "full2_soft",
+    "file": "video/full2_soft.motion.json"
+  },
+  {
+    "id": "full2_straight",
+    "file": "video/full2_straight.motion.json"
+  },
+  {
+    "id": "full_straight",
+    "file": "video/full_straight.motion.json"
+  },
+  {
+    "id": "half3_straight",
+    "file": "video/half3_straight.motion.json"
+  },
+  {
+    "id": "half2_straight",
+    "file": "video/half2_straight.motion.json"
+  },
+  {
+    "id": "wakitest5",
+    "file": "alienware/wakitest5.motion.json"
+  },
+  {
+    "id": "dance_fix15_straight",
+    "file": "video/dance_fix15_straight.motion.json"
+  },
+  {
+    "id": "test6_fix15_straight",
+    "file": "video/test6_fix15_straight.motion.json"
+  },
+  {
+    "id": "test5_fix15_straight",
+    "file": "video/test5_fix15_straight.motion.json"
+  },
+  {
+    "id": "test4_fix15_straight",
+    "file": "video/test4_fix15_straight.motion.json"
+  },
+  {
+    "id": "test3_fix15_straight",
+    "file": "video/test3_fix15_straight.motion.json"
+  },
+  {
+    "id": "wakitest4",
+    "file": "alienware/wakitest4.motion.json"
+  },
+  {
+    "id": "test3-straight",
+    "file": "video/test3_straight.motion.json"
+  },
+  {
+    "id": "test2-straight",
+    "file": "video/test2_straight.motion.json"
+  },
+  {
+    "id": "test-straight",
+    "file": "video/test_straight.motion.json"
+  },
+  {
+    "id": "dance-lite",
+    "file": "video/dance_lite_straight.motion.json"
+  },
+  {
+    "id": "front2-straight",
+    "file": "alienware/front2_straight.motion.json"
+  },
+  {
+    "id": "front1-straight",
+    "file": "alienware/front1_straight.motion.json"
+  },
+  {
+    "id": "front1-191733",
+    "file": "alienware/front1-191733.motion.json"
+  },
+  {
+    "id": "front2-191733",
+    "file": "alienware/front2-191733.motion.json"
+  },
+  {
+    "id": "dance-straight",
+    "file": "video/dance_straight.motion.json"
+  },
+  {
+    "id": "dancehalf-straight",
+    "file": "video/dancehalf_straight.motion.json"
+  },
+  {
     "id": "bird-flap",
     "file": "bird-flap.motion.json"
   },
@@ -78,5 +190,61 @@
   {
     "id": "recorded-markc",
     "file": "markc.motion.json"
+  },
+  {
+    "id": "alienware-marka-20261102-175844",
+    "file": "alienware/marka-20261102-175844.motion.json"
+  },
+  {
+    "id": "alienware-wakitest-20261103",
+    "file": "alienware/wakitest-20261103.motion.json"
+  },
+  {
+    "id": "wakitestrevised2",
+    "file": "alienware/wakitestrevised2-20261103.motion.json"
+  },
+  {
+    "id": "alienware-shosa0",
+    "file": "alienware/shosa0.motion.json"
+  },
+  {
+    "id": "video-arm-dance-model-c",
+    "file": "video/video-arm-dance-model-c.motion.json"
+  },
+  {
+    "id": "dancehalf-fixed-straight",
+    "file": "video/dancehalf_fixed_straight.motion.json"
+  },
+  {
+    "id": "lift-straight",
+    "file": "video/lift_straight.motion.json"
+  },
+  {
+    "id": "reach-straight",
+    "file": "video/reach_straight.motion.json"
+  },
+  {
+    "id": "review-round_straight",
+    "file": "video/review-round_straight.motion.json"
+  },
+  {
+    "id": "round-straight",
+    "file": "video/round_straight.motion.json"
+  },
+  {
+    "id": "full2_soft_HB",
+    "file": "video/full2_soft_HB.motion.json"
+  },
+  {
+    "id": "waki6_HB",
+    "file": "alienware/waki6_HB.motion.json"
+  },
+  {
+    "id": "full2_soft_HB_invite",
+    "file": "video/full2_soft_HB_invite.motion.json"
+  },
+  {
+    "id": "full2_soft_HA_invite",
+    "file": "video/full2_soft_HA_invite.motion.json"
   }
 ]
