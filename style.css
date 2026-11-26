@@ -178,3 +178,8 @@ header, main, footer { width: 100%; }
 
 /* Wide screens: the sticky stage fills the window height (no 760px cap), so no blank band under it. */
 @media(min-width:761px){.stage{height:calc(100dvh - 24px)}}
+
+.arm-control .arm-estop{margin:6px 0;padding:6px 8px;border-radius:6px;font-size:12px;background:#2a2c31;color:#a0acbd}
+.arm-control .arm-estop[data-state=ok]{background:#1f3a2a;color:#8be2a8}
+.arm-control .arm-estop[data-state=lost]{background:#5a2020;color:#fff}
+.arm-control .arm-estop[data-state=pressed]{background:#a32020;color:#fff;font-weight:700}

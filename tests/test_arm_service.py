@@ -31,7 +31,7 @@ class ArmServiceTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         root = Path(self.tmp.name)
         (root / 'Recorded_movements').mkdir()
-        self.service = ArmService(root, root / 'cfg.json')
+        self.service = ArmService(root, root / 'cfg.json', start_estop=False)
         self.root = root
         arm.connected_arms.clear()
 
@@ -82,6 +82,45 @@ class ArmServiceTests(unittest.TestCase):
         port = self.service.arms['L']['port']
         arm.connected_arms.append(FakeArm(port, [11]))
         self.assertEqual(self.service.telemetry()['channels'], [])
+
+
+class EStopTests(unittest.TestCase):
+    """The listener against a pseudo-terminal standing in for the button."""
+    def test_press_stops_once_and_silence_is_reported(self):
+        import os, logging
+        from hardware.estop_listener import EStopListener
+        master, slave = os.openpty()
+        port = os.ttyname(slave)
+        stops = []
+        listener = EStopListener(lambda: stops.append(time.time()), lambda: set(), logging.getLogger('t'), port)
+        try:
+            time.sleep(0.5)                    # the port opens and flushes old input first
+            for _ in range(40):                # the board repeats its heartbeat
+                os.write(master, b'OK\r\n')
+                if listener.status()['connected']: break
+                time.sleep(0.05)
+            self.assertTrue(listener.status()['alive'])
+            os.write(master, b'STOP\r\nSTOP\r\nSTOP\r\n')       # held down: one stop only
+            time.sleep(0.4)
+            self.assertEqual(len(stops), 1)
+            self.assertTrue(listener.status()['pressed'])
+            os.write(master, b'OK\r\nSTOP\r\n')                   # released, pressed again
+            time.sleep(0.4)
+            self.assertEqual(len(stops), 2)
+            time.sleep(1.2)                                            # heartbeat stops
+            self.assertFalse(listener.status()['alive'])
+        finally:
+            listener.close()
+            os.close(master)
+
+    def test_arm_ports_are_never_opened(self):
+        import logging
+        from hardware.estop_listener import EStopListener
+        listener = EStopListener(lambda: None, lambda: {'/dev/cu.arm'}, logging.getLogger('t'), '/dev/cu.arm', start=False)
+        self.assertEqual(listener._candidates(), ['/dev/cu.arm'])     # explicit port is kept...
+        listener.excluded = lambda: {'/dev/cu.arm'}
+        # ..._run refuses it before opening (checked in the loop)
+        self.assertIn('/dev/cu.arm', listener.excluded())
 
 
 if __name__ == '__main__':

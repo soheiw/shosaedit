@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 from . import arm_controller as arm
+from .estop_listener import EStopListener
 
 SIDES = ('R', 'L')
 SIDE_NAMES = {'R': 'right', 'L': 'left'}
@@ -51,7 +52,7 @@ def _signed32(value):
 
 
 class ArmService:
-    def __init__(self, data_dir, config_path):
+    def __init__(self, data_dir, config_path, start_estop=True):
         self.data_dir = Path(data_dir).expanduser().resolve()
         if not (self.data_dir / 'Recorded_movements').is_dir():
             raise ValueError(f'{self.data_dir} has no Recorded_movements folder')
@@ -66,6 +67,13 @@ class ArmService:
         except (OSError, ValueError):
             pass
         self.locked = False
+        estop_port = ''
+        try:
+            estop_port = json.loads(self.config_path.read_text()).get('estop', '')
+        except (OSError, ValueError, AttributeError):
+            pass
+        self.estop = EStopListener(self._estop_pressed, lambda: {self.arms[s]['port'] for s in SIDES},
+                                   arm.log, estop_port, busy=self._other_holders, start=start_estop)
         self.models = {}            # port -> {id: model number}
         self._live_until = 0.0
         self._log_seq = 0
@@ -88,7 +96,7 @@ class ArmService:
         self.arms[side] = {'port': port, 'ids': ids}
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.config_path.with_suffix('.tmp')
-        tmp.write_text(json.dumps(self.arms))
+        tmp.write_text(json.dumps({**self.arms, 'estop': self.estop.port}))
         tmp.replace(self.config_path)
         return self.status()
 
@@ -134,8 +142,24 @@ class ArmService:
             }
         with self._lock:
             log = [{'seq': s, 'line': l} for s, l in self._log if s > since]
-        return {'enabled': True, 'dataDir': str(self.data_dir), 'locked': self.locked,
+        return {'enabled': True, 'dataDir': str(self.data_dir), 'locked': self.locked, 'estop': self.estop.status(),
                 'fixing': bool(arm.fix_state.get('busy')), 'arms': arms, 'log': log, 'logSeq': self._log_seq}
+
+    # ----- USB STOP button -----
+    def _estop_pressed(self):
+        """Runs on the button's thread: same as the STOP button on screen."""
+        arm.emergency_stop()
+
+    def configure_estop(self, port):
+        port = str(port or '').strip()
+        if port and port in {self.arms[s]['port'] for s in SIDES}:
+            raise ValueError('that is an arm port')
+        self.estop.configure(port)
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.config_path.with_suffix('.tmp')
+        tmp.write_text(json.dumps({**self.arms, 'estop': port}))
+        tmp.replace(self.config_path)
+        return self.status()
 
     # ----- connection -----
     def connect(self, side):
@@ -443,6 +467,7 @@ class ArmService:
 
     def close(self):
         """Stop motion and close the ports when the server exits; torque is left as it is (TD's DISCONNECT)."""
+        self.estop.close()
         try:
             for a in list(arm.connected_arms):
                 a.set_is_stop(True)

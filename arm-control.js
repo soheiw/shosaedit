@@ -21,6 +21,7 @@ export async function bindArmControl({getRecording=null,validate=async()=>{},nam
  host.innerHTML=`<span class="eyebrow">HARDWARE</span><h2>実機操作</h2>
 <p><a href="monitor.html" target="shosaedit-monitor" class="arm-monitor-link">実機モニターを別タブで開く ↗</a></p><p class="curve-help">TouchDesignerを使わずに実機を動かします。<b>TDと同じポートを同時に開かないでください</b>（TDでDISCONNECTしてから接続）。Escキーで緊急停止します。</p>
 <button type="button" class="arm-stop" data-stop>■ 緊急停止 STOP（Esc）</button>
+<p class="arm-estop" data-estop>USB STOPボタン：確認中…</p>
 <div class="row arm-safety"><button type="button" data-lock>LOCK</button><button type="button" data-release>RELEASE（脱力）</button><button type="button" data-fix>FIX MOTORS</button></div>
 ${SIDES.map(s=>`<div class="arm-card" data-card="${s}"><div class="row"><b>${NAME[s]}</b><span data-state></span></div>
 <div class="row"><input data-port aria-label="${s} port" placeholder="/dev/cu.usbserial-…"><input data-ids aria-label="${s} IDs" placeholder="IDs"></div>
@@ -58,6 +59,9 @@ ${SIDES.map(s=>`<div class="arm-card" data-card="${s}"><div class="row"><b>${NAM
   $('[data-fix]').textContent=st.fixing?'FIXING…':'FIX MOTORS';
   if(st.log?.length){const pre=$('[data-log]');pre.textContent=(pre.textContent+'\n'+st.log.map(l=>l.line).join('\n')).split('\n').slice(-200).join('\n').trim();pre.scrollTop=pre.scrollHeight;}
   logSeq=st.logSeq??logSeq;
+  const e=st.estop||{},el=$('[data-estop]');
+  el.textContent=!e.connected?`USB STOPボタン：未接続${e.configuredPort?'（'+e.configuredPort+'）':'（自動検出）'}${e.error?' · '+e.error:''}`:!e.alive?`USB STOPボタン：応答なし（${e.port}）— ケーブルを確認`:e.pressed?`USB STOPボタン：押されています（${e.port}）`:`USB STOPボタン：接続中（${e.port}）· 押した回数 ${e.stops}`;
+  el.dataset.state=!e.connected?'off':!e.alive?'lost':e.pressed?'pressed':'ok';
  }
  async function poll(){try{render(await api('status?since='+logSeq));}catch(e){msg('サーバーに接続できません：'+e.message);}
   if(recStart!==null){const s=(performance.now()-recStart)/1000;$('[data-rec-timer]').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${(s%60).toFixed(1).padStart(4,'0')}`;}

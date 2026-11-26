@@ -85,6 +85,7 @@ class LocalPreviewHandler(SimpleHTTPRequestHandler):
         if action == 'save-motion': return arms.save_motion(body)
         if action == 'record': return arms.record(bool(body.get('on')), body.get('name'))
         if action == 'calibrate': return arms.calibrate(body.get('side'))
+        if action == 'estop': return arms.configure_estop(body.get('port'))
         if action == 'nudge': return arms.nudge(body.get('side'), body.get('id'), body.get('degrees'))
         raise KeyError(action)
 
