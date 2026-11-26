@@ -6,6 +6,13 @@ const KEY='augmented-arms-load-model-v2';
 const fmt=(n,d=2)=>Number.isFinite(n)?n.toFixed(d):'—';
 function validInertia(I){if(!Array.isArray(I)||I.length!==3||!I.every((r,i)=>Array.isArray(r)&&r.length===3&&r.every(Number.isFinite)&&r[i]>=0))return false;for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)if(Math.abs(I[i][j]-I[j][i])>1e-10||I[i][i]*I[j][j]-I[i][j]**2< -1e-12)return false;return I[0][0]*(I[1][1]*I[2][2]-I[1][2]*I[2][1])-I[0][1]*(I[1][0]*I[2][2]-I[1][2]*I[2][0])+I[0][2]*(I[1][0]*I[2][1]-I[1][1]*I[2][0])>=-1e-12;}
 /** Editable assumptions are shared by both mirrored arms. Results use playback seconds. */
+/** The live arms' reference: zero = the attached model's rest pose (arm_models.json),
+ * with the same rest-to-CAD quarter turn on column 5 as armModelsSnapshot uses. */
+export function withArmRest(model,calibration){
+ const out=structuredClone(model||{});
+ for(const side of ['R','L']){const rest=calibration?.[side]?.rest;if(!out[side]||!Array.isArray(rest)||rest.length!==out[side].zero.length)continue;
+  out[side].zero=[...rest];out[side].zero[4]+=out[side].resolution/4;}
+ return out;}
 /** Static (gravity) torque per motor column for one pose: {R:{col:N·m},L:{...}}. */
 export function poseTorquesFrom(model,rows){const out={};
  for(const side of ['R','L']){const m=model?.[side],row=rows?.[side];if(!m||!row)continue;

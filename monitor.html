@@ -45,7 +45,7 @@ label.scale{font-size:12px;color:var(--muted)}
    <span class="legend"><span><i style="background:#f4b76c"></i>理論値トルク（姿勢と質量モデルから）</span><span><i style="background:#89d6c5"></i>実電流から推定したトルク</span></span>
    <label class="scale">バーの最大 <select id="mon-scale"><option>0.5</option><option selected>1</option><option>2</option><option>4</option></select> N·m</label></div>
   <p class="mon-note">実電流から推定：モーターが読んだ電流 × 換算係数（公称の停止トルク÷停止電流、未校正）。トルクOFF（脱力）中はほぼ0です。<br>
-   理論値：今の姿勢での重力トルク。ShosaEditのメインタブで選んでいる校正・質量モデルを使い、このタブで現在位置から計算します（モデルはメインタブを一度開くと受け取ります）。正負の向きが実測と一致するかは未確認です。</p>
+   理論値：今の姿勢での重力トルク。基準姿勢は arm_models.json で今選ばれている腕のモデルのもの（実機パネルの「基準姿勢を保存」で更新）、質量・関節軸はメインタブのモデルを使い、このタブで現在位置から計算します。正負の向きが実測と一致するかは未確認です。</p>
   <div class="mon-tabs"><button type="button" data-view="charts" class="on">時系列グラフ</button><button type="button" data-view="table">表</button></div>
   <div id="view-charts"><div class="mon-controls"><label>表示する長さ <select id="mon-window"><option value="10">10秒</option><option value="30" selected>30秒</option><option value="60">60秒</option><option value="120">120秒</option></select></label>
    <label>縦軸 <select id="mon-yaxis"><option value="auto" selected>軸ごとに自動</option><option value="0.5">±0.5 N·m</option><option value="1">±1 N·m</option><option value="2">±2 N·m</option><option value="4">±4 N·m</option></select></label>

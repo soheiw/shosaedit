@@ -370,6 +370,17 @@ class ArmService:
         self._save_models_file(data)
         return {'saved': True, 'side': side, 'model': model, 'rest': entry['rest'], 'time': entry['time']}
 
+    def calibration(self):
+        """Rest pose of the arm model selected on each side now (arm_models.json)."""
+        data = self._models_file()
+        out = {}
+        for s in SIDES:
+            name = SIDE_NAMES[s]
+            model = data['selected'][name]
+            entry = data['calibrations'][name].get(model)
+            out[s] = {'model': model, 'rest': entry['rest'], 'time': entry['time']} if entry else {'model': model, 'rest': None}
+        return out
+
     # ----- arm_models.json (same file and rules as TD's arm_models DAT) -----
     def _models_path(self):
         return self.data_dir / 'Recorded_movements' / 'arm_models.json'

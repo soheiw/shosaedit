@@ -3,7 +3,7 @@
 // for the arm control panel, which is the same one the main tab shows.
 import {MODEL_CURRENT_SPECS} from './measured-load.js';
 import {bindArmControl} from './arm-control.js';
-import {poseTorquesFrom} from './load-panel.js';
+import {poseTorquesFrom,withArmRest} from './load-panel.js';
 
 const KEYS=['R','L'].flatMap(s=>Array.from({length:s==='R'?9:8},(_,j)=>s+(s==='R'?j+1:j+11)));
 const SETTINGS='shosaedit-measured-load-settings-v1';   // the main tab's saved coefficients
@@ -46,7 +46,8 @@ function draw(){for(const k of KEYS)drawChart(k);}
 // may sit in the background or be closed once it has published it).
 let poseModel=null;try{poseModel=JSON.parse(localStorage.getItem('shosaedit-pose-model')||'null');}catch{}
 try{new BroadcastChannel('shosaedit-live-pose').onmessage=e=>{if(e.data?.model)poseModel=JSON.parse(e.data.model);};}catch{}
-function updatePose(){if(!poseModel||!live)return;const t=poseTorquesFrom(poseModel,{R:live.R,L:live.L});
+let armRest=null;
+function updatePose(){if(!poseModel||!live)return;const t=poseTorquesFrom(withArmRest(poseModel,armRest),{R:live.R,L:live.L});
  pose=Object.fromEntries(Object.entries(t).flatMap(([side,cols])=>Object.entries(cols).map(([col,v])=>[`${side}${Number(col)+(side==='R'?1:11)}`,v])));poseAt=Date.now();}
 
 function coefficient(key,model){
@@ -81,7 +82,7 @@ function render(){
  }
  const n=Object.values(channels).filter(c=>c.fresh).length;
  if(!paused&&!$('view-charts').hidden)draw();
- $('mon-status').textContent=`実電流 ${n} / 17 軸受信中 · 理論値 ${poseFresh?'計算中':poseModel?'位置待ち':'モデル未受信（メインタブを一度開いてください）'}`;
+ $('mon-status').textContent=`実電流 ${n} / 17 軸受信中 · 理論値 ${poseFresh?'計算中':poseModel?'位置待ち':'モデル未受信（メインタブを一度開いてください）'} · 基準姿勢 ${['R','L'].map(s=>armRest?.[s]?.rest?`${s} ${armRest[s].model}（${armRest[s].time}）`:`${s} 未校正`).join(' / ')}`;
 }
 
 async function get(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error(r.status);return r.json();}
@@ -89,7 +90,7 @@ async function poll(){
  try{[telemetry,live]=await Promise.all([get('/api/telemetry/status'),get('/api/arm/live')]);updatePose();}catch{telemetry=null;}
  render();setTimeout(poll,200);
 }
-async function pollArm(){try{arm=await get('/api/arm/status?since=999999999');}catch{arm=null;}setTimeout(pollArm,1000);}
+async function pollArm(){try{arm=await get('/api/arm/status?since=999999999');armRest=await get('/api/arm/calibration');}catch{arm=null;}setTimeout(pollArm,1000);}
 $('mon-scale').onchange=render;
 bindArmControl({mount:host=>document.querySelector('.mon-side').append(host)});
 poll();pollArm();

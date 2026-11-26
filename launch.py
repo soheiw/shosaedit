@@ -64,6 +64,7 @@ class LocalPreviewHandler(SimpleHTTPRequestHandler):
                 self._json(200, arms.status(since))
             elif url.path == '/api/arm/live': self._json(200, arms.live())
             elif url.path == '/api/arm/recordings': self._json(200, arms.recordings())
+            elif url.path == '/api/arm/calibration': self._json(200, arms.calibration())
             else: self._json(404, {'error': 'Unknown endpoint'})
         except (ValueError, OSError) as error:
             self._json(400, {'error': str(error)})
