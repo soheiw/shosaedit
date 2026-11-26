@@ -32,3 +32,6 @@ tests/*-report.json
 *.gltf
 
 /reference-videos/
+
+# Local Python environment for --hardware (dynamixel-sdk, pyserial).
+/.venv/

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShosaEdit · 実機モニター</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{margin:0;background:var(--bg);color:var(--text)}
+.monitor{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;padding:12px 16px}
+@media(max-width:900px){.monitor{grid-template-columns:1fr}}
+.mon-panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.mon-head{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.mon-head h2{margin:0;font-size:17px}
+.mon-status{color:var(--accent);font-size:13px}
+.mon-note{color:var(--muted);font-size:12px;line-height:1.6;margin:4px 0 10px}
+.mon-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+.mon-table th,.mon-table td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.mon-table th:first-child,.mon-table td:first-child,.mon-table td.model{text-align:left}
+.mon-table thead th{color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--panel)}
+.mon-table tr.side-start td{border-top:2px solid #46505f}
+.mon-table td.big{font-size:16px;font-weight:700}
+.mon-table td.dim{color:var(--muted)}
+.bar{position:relative;width:260px;height:22px;background:#12161d;border-radius:4px;overflow:hidden}
+.bar .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#566070}
+.bar .m,.bar .p{position:absolute;height:9px;border-radius:2px}
+.bar .m{top:2px;background:#89d6c5}.bar .p{bottom:2px;background:#f4b76c}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.mon-side .arm-control{margin:0}
+label.scale{font-size:12px;color:var(--muted)}
+.mon-tabs{display:flex;gap:6px;margin:0 0 10px}
+.mon-tabs button.on{background:var(--accent);color:#0c1116}
+.mon-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+.mon-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.mon-col h3{margin:0 0 6px;font-size:14px}
+.mon-col{display:flex;flex-direction:column;gap:8px}
+.chart-card{background:#12161d;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.chart-card .ct{display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px}
+.chart-card .ct b{font-size:13px}
+.chart-card .ct .v{font-variant-numeric:tabular-nums}
+.chart-card canvas{display:block;width:100%;height:110px}
+</style></head>
+<body>
+<div class="monitor">
+ <section class="mon-panel">
+  <div class="mon-head"><h2>実機トルク モニター</h2><span class="mon-status" id="mon-status">接続中…</span>
+   <span class="legend"><span><i style="background:#f4b76c"></i>理論値トルク（姿勢と質量モデルから）</span><span><i style="background:#89d6c5"></i>実電流から推定したトルク</span></span>
+   <label class="scale">バーの最大 <select id="mon-scale"><option>0.5</option><option selected>1</option><option>2</option><option>4</option></select> N·m</label></div>
+  <p class="mon-note">実電流から推定：モーターが読んだ電流 × 換算係数（公称の停止トルク÷停止電流、未校正）。トルクOFF（脱力）中はほぼ0です。<br>
+   理論値：今の姿勢での重力トルク。ShosaEditのメインタブで選んでいる校正・質量モデルを使い、このタブで現在位置から計算します（モデルはメインタブを一度開くと受け取ります）。正負の向きが実測と一致するかは未確認です。</p>
+  <div class="mon-tabs"><button type="button" data-view="charts" class="on">時系列グラフ</button><button type="button" data-view="table">表</button></div>
+  <div id="view-charts"><div class="mon-controls"><label>表示する長さ <select id="mon-window"><option value="10">10秒</option><option value="30" selected>30秒</option><option value="60">60秒</option><option value="120">120秒</option></select></label>
+   <label>縦軸 <select id="mon-yaxis"><option value="auto" selected>軸ごとに自動</option><option value="0.5">±0.5 N·m</option><option value="1">±1 N·m</option><option value="2">±2 N·m</option><option value="4">±4 N·m</option></select></label>
+   <button type="button" id="mon-pause">一時停止</button><button type="button" id="mon-clear">消去</button><button type="button" id="mon-csv">CSV保存</button></div>
+   <div class="mon-charts"><div class="mon-col" id="col-R"><h3>右腕</h3></div><div class="mon-col" id="col-L"><h3>左腕</h3></div></div></div>
+  <div id="view-table" hidden><div style="overflow:auto"><table class="mon-table"><thead><tr><th>軸</th><th>理論値トルク N·m</th><th>実電流から推定 N·m</th><th>差（実−理論）</th><th>比較</th><th>電流 A</th><th>型番</th><th>トルク</th><th>状態</th><th>位置 counts</th></tr></thead><tbody id="mon-rows"></tbody></table></div></div>
+ </section>
+ <aside class="mon-side"></aside>
+</div>
+<script type="module" src="monitor.js"></script>
+</body></html>

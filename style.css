@@ -145,3 +145,36 @@ main > .stage { min-width: 0; max-width: 100%; }
 /* Respect Chrome's visual viewport during trackpad pinch zoom. */
 body { width: var(--visible-width, 100%); max-width: 100%; }
 header, main, footer { width: 100%; }
+
+/* Direct arm control panel (arm-control.js, launch.py --hardware). */
+.arm-control{border:1px solid #6b2a2a}
+.arm-control .arm-stop{width:100%;padding:14px;font-size:16px;font-weight:700;background:#a32020;color:#fff;border:0;border-radius:6px;cursor:pointer}
+.arm-control .arm-stop:hover{background:#c22a2a}
+.arm-control .arm-card{margin-top:10px;padding:8px;border-radius:6px;background:rgba(255,255,255,.04)}
+.arm-control .arm-card[data-state="connected"]{background:rgba(60,140,90,.18)}
+.arm-control .arm-card[data-state="failed"]{background:rgba(170,50,50,.18)}
+.arm-control .arm-card input[data-port]{flex:2;min-width:0}.arm-control .arm-card input[data-ids]{flex:1;min-width:0}
+.arm-control .arm-motors{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+.arm-control .arm-motors span{min-width:22px;padding:2px 4px;text-align:center;font-size:11px;font-weight:700;border-radius:3px;color:#fff}
+.arm-control .arm-locked{background:#b02020;color:#fff}
+.arm-control .arm-recording{background:#8a1e1e;color:#fff}
+.arm-control .arm-live,.arm-control .arm-log{max-height:220px;overflow:auto;font-size:11px;white-space:pre}
+
+/* Measured current/torque panel stays inside the sticky stage, compact, scrolling on its own. */
+/* Shown in place of the torque graph (グラフ: 実機トルク), so the 3D view keeps its height. */
+.stage>#measured-load-panel{flex:0 0 auto;height:165px;overflow:auto;padding:4px 12px;border-top:0}
+.stage>#measured-load-panel>h2{display:none}
+.stage>#measured-load-panel [data-measured-status]{display:inline-block;margin:0 10px 0 0}
+.stage>#measured-load-panel .measured-actions{display:inline-flex;margin:0 0 4px}
+.stage>#measured-load-panel .measured-actions button{padding:3px 8px;font-size:11px}
+.stage>#measured-load-panel[hidden]{display:none}
+.stage>#measured-load-panel .measured-actions{margin:4px 0}.stage>#measured-load-panel [data-measured-status]{margin:2px 0}
+.stage>#measured-load-panel h2{font-size:14px;margin:0 0 4px}
+.stage>#measured-load-panel .measured-note{display:none}
+.measured-load table.measured-grid td,.measured-load table.measured-grid th{padding:3px 5px;font-size:11px;text-align:right}
+.measured-load table.measured-grid tbody th{text-align:left;position:sticky;left:0;background:var(--panel)}
+.measured-load table.measured-grid td[data-state=over]{color:#ff9292;background:#4d242a}
+.measured-load table.measured-grid td[data-state=warning]{color:#ffcf7d}
+
+/* Wide screens: the sticky stage fills the window height (no 760px cap), so no blank band under it. */
+@media(min-width:761px){.stage{height:calc(100dvh - 24px)}}

@@ -6,6 +6,12 @@ const KEY='augmented-arms-load-model-v2';
 const fmt=(n,d=2)=>Number.isFinite(n)?n.toFixed(d):'—';
 function validInertia(I){if(!Array.isArray(I)||I.length!==3||!I.every((r,i)=>Array.isArray(r)&&r.length===3&&r.every(Number.isFinite)&&r[i]>=0))return false;for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)if(Math.abs(I[i][j]-I[j][i])>1e-10||I[i][i]*I[j][j]-I[i][j]**2< -1e-12)return false;return I[0][0]*(I[1][1]*I[2][2]-I[1][2]*I[2][1])-I[0][1]*(I[1][0]*I[2][2]-I[1][2]*I[2][0])+I[0][2]*(I[1][0]*I[2][1]-I[1][1]*I[2][0])>=-1e-12;}
 /** Editable assumptions are shared by both mirrored arms. Results use playback seconds. */
+/** Static (gravity) torque per motor column for one pose: {R:{col:N·m},L:{...}}. */
+export function poseTorquesFrom(model,rows){const out={};
+ for(const side of ['R','L']){const m=model?.[side],row=rows?.[side];if(!m||!row)continue;
+  try{const a=analyzeMotion({...m,rows:[row],fullCount:1,fps:30,rate:1,sampleHz:30,durationSeconds:1/30});
+   out[side]={};m.joints.slice(1).forEach((j,k)=>{if(j.motor>=0)out[side][j.motor]=a.gravity[0][k];});}catch{}}
+ return out;}
 export function createLoadPanel(host,{shapes,motorSpecs=null,motorMapping=null,getInputs,onSeek=()=>{},onHeatChange=()=>{},onResults=()=>{}}){
  const defaults=Array.isArray(shapes)?shapes:shapes.links;
  if(!defaults||defaults.length!==7||defaults.some(s=>!Number.isFinite(s.defaultMass)||s.defaultMass<0))throw Error('Seven link shapes with default masses required');
@@ -80,5 +86,18 @@ export function createLoadPanel(host,{shapes,motorSpecs=null,motorMapping=null,g
  if(!Array.isArray(shapes.materialComponents)){for(const el of host.querySelectorAll('[data-material]'))el.disabled=true;$('materials').disabled=true;$('material-status').textContent='材料からの再計算には private-model/mass-shapes.json が必要です。リンクの質量・重心は直接編集できます。';}
  syncSettingsInputs();motorTable();
  svg.addEventListener('pointerdown',e=>{if(!results)return;const rect=svg.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*440,fraction=clamp((x-40)/386,0,1),a=selected(e.shiftKey),duration=Math.max(selected(true).duration,selected(false).duration),t=clamp(fraction*duration,0,a.duration);let lo=0,hi=a.times.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(a.times[m]<t)lo=m;else hi=m;}const f=(t-a.times[lo])/(a.times[hi]-a.times[lo]||1);onSeek(a.sourceFrames[lo]*(1-f)+a.sourceFrames[hi]*f,{original:e.shiftKey,time:t});});
- return {invalidate,assertRecording,hasInvalidSettings:()=>motorPanel.hasInvalidSettings(),dispose(){revision++;clearTimeout(timer);},updateCursor(v){cursors={...cursors,...v};motorPanel.updateTime(cursors.editedTime??cursors.originalFrame/30);drawCursor();},currentAt,currentAtTime,heatAtTime(s,original,seconds){return currentAtTime(s,original,seconds).map(v=>clamp(Math.abs(v)/maxHeat,0,1));},heat(s,original,frame){return currentAt(s,original,frame).map(v=>clamp(Math.abs(v)/maxHeat,0,1));},isHeatEnabled:()=>$('heat').checked,getResults:()=>results,getMotorAssessment:()=>motorPanel.snapshot(),getSettings:()=>structuredClone(settings)};
+ // Static (gravity) torque of one live pose per joint, same model, calibration and
+ // mount as the recording estimate. rows: {R:[9 counts],L:[8 counts]}. Returns
+ // {R:{motorColumn:N·m},L:{...}}; a side without a row or calibration is omitted.
+ // poseModel(): everything analyzeMotion needs for one side, as plain data, so
+ // another tab (monitor.html) can compute the same estimate itself.
+ function poseModel(){const input=getInputs(),links=linkModels(),out={};
+  for(const side of ['R','L']){const cfg=input.config?.[side];if(!cfg?.joints||!cfg?.zero)continue;
+   const nativeDelta=i=>(defaults[i].nativePivot??cfg.joints[i+1].pivot).map((v,k)=>(v-cfg.joints[i+1].pivot[k])*.001);
+   out[side]={gravity:localGravity(cfg.mount),joints:cfg.joints,zero:cfg.zero,resolution:input.config.resolution??4096,
+    links:links.map((l,i)=>({...l,com:l.com.map((v,k)=>v+nativeDelta(i)[k])})),
+    payload:{mass:settings.payload[side],com:(shapes.payloadCom??links[6].com).map((v,k)=>v+nativeDelta(6)[k])}};}
+  return JSON.parse(JSON.stringify(out));}
+ function poseTorques(rows){return poseTorquesFrom(poseModel(),rows);}
+ return {poseModel,poseTorques,invalidate,assertRecording,hasInvalidSettings:()=>motorPanel.hasInvalidSettings(),dispose(){revision++;clearTimeout(timer);},updateCursor(v){cursors={...cursors,...v};motorPanel.updateTime(cursors.editedTime??cursors.originalFrame/30);drawCursor();},currentAt,currentAtTime,heatAtTime(s,original,seconds){return currentAtTime(s,original,seconds).map(v=>clamp(Math.abs(v)/maxHeat,0,1));},heat(s,original,frame){return currentAt(s,original,frame).map(v=>clamp(Math.abs(v)/maxHeat,0,1));},isHeatEnabled:()=>$('heat').checked,getResults:()=>results,getMotorAssessment:()=>motorPanel.snapshot(),getSettings:()=>structuredClone(settings)};
 }

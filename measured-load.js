@@ -2,7 +2,8 @@
 export const MODEL_CURRENT_SPECS = {
  'XM540-W150-R': {rawUnitMa:2.69, torquePerAmpNm:7.3/4.4, source:'https://emanual.robotis.com/docs/en/dxl/x/xm540-w150/'},
  'XM430-W350-R': {rawUnitMa:2.69, torquePerAmpNm:4.1/2.3, source:'https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/'},
- 'XC330-T288-T': {rawUnitMa:1, torquePerAmpNm:1/.88, source:'https://emanual.robotis.com/docs/en/dxl/x/xc330-t288/'}
+ 'XC330-T288-T': {rawUnitMa:1, torquePerAmpNm:1/.88, source:'https://emanual.robotis.com/docs/en/dxl/x/xc330-t288/'},
+ 'XC330-T181-T': {rawUnitMa:1, torquePerAmpNm:.8/.88, source:'https://emanual.robotis.com/docs/en/dxl/x/xc330-t181/'}
 };
 export const CHANNELS=['R','L'].flatMap(side=>Array.from({length:side==='R'?9:8},(_,j)=>({side,id:side==='R'?j+1:j+11,joint:j+1,key:`${side}${side==='R'?j+1:j+11}`,label:`${side}${j+1} (ID${side==='R'?j+1:j+11})`})));
 const knownModels={1:'XM540-W150-R',2:'XM540-W150-R',3:'XM430-W350-R',4:'XM540-W150-R',6:'XC330-T288-T',7:'XC330-T288-T'};
